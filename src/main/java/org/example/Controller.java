@@ -93,6 +93,7 @@ public class Controller {
 
         /* show page image */
         try {
+            System.out.println("Page: "+page);
             fullPageImageView.setImage(page.getImage());
             fullPageImageView.setFitHeight(fullPageBorderPane.getHeight()-50);
             fullPageImageView.setPreserveRatio(true);
@@ -114,9 +115,11 @@ public class Controller {
         if(listView_students.getSelectionModel().isEmpty()
             && listView_students.getItems().size() > 0) {
             listView_students.getSelectionModel().select(0);
-
-
         }
+        Page page = ((Student) listView_students.getSelectionModel().getSelectedItem())
+                .getPage(exercise.getPageNo());
+        listView_pages.getSelectionModel().select(page);
+        clickPage(null);
 
         /* show answers list */
         answers_list.getChildren().clear();
@@ -128,6 +131,12 @@ public class Controller {
                 imageView.setImage(student.getAnswerImage(exercise));
                 imageView.setFitWidth(answersScrollPane.getWidth());
                 imageView.setPreserveRatio(true);
+                imageView.setOnMouseClicked(e -> {
+                    listView_students.getSelectionModel().select(student);
+                    clickStudent(null);
+                    listView_pages.getSelectionModel().select(student.getPage(exercise.getPageNo()));
+                    clickPage(null);
+                });
                 answers_list.getChildren().add(imageView);
             } catch (IOException e) {
                 e.printStackTrace();
