@@ -1,0 +1,5 @@
+org/example/QRexam.class
+org/example/model/Student.class
+org/example/model/Page.class
+org/example/model/Exercise.class
+org/example/Controller.class

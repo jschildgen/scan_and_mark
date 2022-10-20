@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.image.ImageView?>
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="org.example.Controller"
+            fx:id="fullPageBorderPane" onKeyPressed="#imageKeyReleased">
+    <top>
+        <VBox>
+            <BorderPane>
+                <left><Label text="Working Directory: "/></left>
+                <center><TextField fx:id="working_dir"/></center>
+                <right>
+                    <HBox>
+                        <Button text="..." onAction="#chooseDir"/>
+                        <Button text="Load" onAction="#loadDir" />
+                        <Button text="Import PDF" onAction="#importPDF"/>
+                    </HBox>
+                </right>
+            </BorderPane>
+        </VBox>
+    </top>
+    <left>
+        <HBox prefWidth="200">
+            <VBox>
+                <Label text="Students"></Label>
+                <TextField prefWidth="100" fx:id="studentName" onKeyReleased="#changeStudentName"></TextField>
+                <ListView VBox.vgrow="ALWAYS" fx:id="listView_students" onMouseClicked="#clickStudent"></ListView>
+            </VBox>
+            <VBox>
+                <Label text="Pages"></Label>
+                <ListView VBox.vgrow="ALWAYS" fx:id="listView_pages" onMouseClicked="#clickPage"></ListView>
+            </VBox>
+        </HBox>
+    </left>
+    <center>
+        <BorderPane>
+            <left>
+                <Pane fx:id="fullPageImagePane" onMousePressed="#fullPageImageDragStart" onMouseReleased="#fullPageImageDragStop">
+                    <ImageView fx:id="fullPageImageView"></ImageView>
+                </Pane>
+            </left>
+            <center>
+                <ScrollPane vbarPolicy="ALWAYS" fx:id="answersScrollPane">
+                    <VBox fx:id="answers_list"/>
+                </ScrollPane>
+            </center>
+        </BorderPane>
+    </center>
+    <right>
+        <VBox prefWidth="100">
+            <Label text="Exercises"></Label>
+            <TextField prefWidth="100" fx:id="exerciseLabel" onKeyReleased="#changeExerciseLabel"></TextField>
+            <Button text="Delete" prefWidth="100" onAction="#deleteExercise"></Button>
+            <ListView VBox.vgrow="ALWAYS" fx:id="listView_exercises" onMouseClicked="#clickExercise"></ListView>
+        </VBox>
+    </right>
+</BorderPane>
