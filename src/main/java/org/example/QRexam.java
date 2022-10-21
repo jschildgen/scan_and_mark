@@ -26,7 +26,7 @@ public class QRexam extends Application {
         base_dir = Paths.get("/media/tmpfs/qrtest");
 
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
-        stage.setTitle("QRexam "+base_dir);
+        stage.setTitle("QRexam");
         stage.setScene(new Scene(root, 1400, 900));
         stage.setMaximized(true);
         stage.show();

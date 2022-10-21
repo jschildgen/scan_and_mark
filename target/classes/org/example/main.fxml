@@ -46,17 +46,60 @@
                 </Pane>
             </left>
             <center>
-                <ScrollPane vbarPolicy="ALWAYS" fx:id="answersScrollPane">
-                    <VBox fx:id="answers_list"/>
-                </ScrollPane>
+                <BorderPane>
+                    <top>
+                        <BorderPane>
+                            <left>
+                                <HBox alignment="CENTER_LEFT">
+                                    <Label text=" Exercise: "/>
+                                    <TextField prefWidth="100" fx:id="exerciseLabel" onKeyReleased="#changeExerciseLabel"/>
+                                    <Button text="Delete" onAction="#deleteExercise"/>
+                                    <Button text="↥+"/>
+                                    <Button text="↥-"/>
+                                    <Button text="↧+"/>
+                                    <Button text="↧-"/>
+                                    <Button text="↤+"/>
+                                    <Button text="↤-"/>
+                                    <Button text="↦+"/>
+                                    <Button text="↦-"/>
+                                    <Label text="Points: "/>
+                                    <TextField prefWidth="35"/>
+                                </HBox>
+                            </left>
+                            <right>
+                                <HBox alignment="CENTER_RIGHT">
+                                    <RadioButton text="All" selected="true">
+                                        <toggleGroup>
+                                            <ToggleGroup fx:id="show_exercises"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <RadioButton text="Not marked">
+                                        <toggleGroup>
+                                            <fx:reference source="show_exercises"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <RadioButton text="Completed">
+                                        <toggleGroup>
+                                            <fx:reference source="show_exercises"/>
+                                        </toggleGroup>
+                                    </RadioButton>
+                                    <Separator></Separator>
+                                </HBox>
+                            </right>
+                        </BorderPane>
+                    </top>
+                    <center>
+                        <ScrollPane vbarPolicy="ALWAYS" hbarPolicy="NEVER" fx:id="answersScrollPane">
+                            <VBox fx:id="answers_list"/>
+                        </ScrollPane>
+                    </center>
+                </BorderPane>
             </center>
         </BorderPane>
     </center>
     <right>
         <VBox prefWidth="100">
             <Label text="Exercises"></Label>
-            <TextField prefWidth="100" fx:id="exerciseLabel" onKeyReleased="#changeExerciseLabel"></TextField>
-            <Button text="Delete" prefWidth="100" onAction="#deleteExercise"></Button>
             <ListView VBox.vgrow="ALWAYS" fx:id="listView_exercises" onMouseClicked="#clickExercise"></ListView>
         </VBox>
     </right>

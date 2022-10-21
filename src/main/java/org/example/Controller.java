@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -15,13 +16,12 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import org.example.elements.MarkingPane;
 import org.example.model.Exercise;
 import org.example.model.Page;
 import org.example.model.Student;
@@ -93,7 +93,6 @@ public class Controller {
 
         /* show page image */
         try {
-            System.out.println("Page: "+page);
             fullPageImageView.setImage(page.getImage());
             fullPageImageView.setFitHeight(fullPageBorderPane.getHeight()-50);
             fullPageImageView.setPreserveRatio(true);
@@ -124,8 +123,7 @@ public class Controller {
         /* show answers list */
         answers_list.getChildren().clear();
         for(Student student : list_students) {
-            Label student_label = new Label(student.toString());
-            answers_list.getChildren().add(student_label);
+            answers_list.getChildren().add(new MarkingPane(student));
             try {
                 ImageView imageView = new ImageView();
                 imageView.setImage(student.getAnswerImage(exercise));
@@ -138,6 +136,7 @@ public class Controller {
                     clickPage(null);
                 });
                 answers_list.getChildren().add(imageView);
+                answers_list.getChildren().add(new Separator());
             } catch (IOException e) {
                 e.printStackTrace();
                 Label error_label = new Label("Error loading image");
@@ -159,6 +158,8 @@ public class Controller {
         if(exercise == null) { return; }
         list_exercises.remove(exercise);
         listView_exercises.getSelectionModel().clearSelection();
+        exerciseLabel.setText("");
+        answers_list.getChildren().clear();
         refreshRectangles();
     }
 
@@ -180,6 +181,7 @@ public class Controller {
             list_exercises.stream()
                     .filter(e -> e.containsPoint(pos[0]))
                     .forEach(e -> listView_exercises.getSelectionModel().select(e));
+            clickExercise(null);
             return;
         }
 
@@ -207,6 +209,8 @@ public class Controller {
 
         fullPageImagePane.getChildren().add(getRectangle(e));
 
+        listView_exercises.getSelectionModel().select(e);
+        clickExercise(null);
     }
 
 

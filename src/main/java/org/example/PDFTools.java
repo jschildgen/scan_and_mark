@@ -1,6 +1,8 @@
 package org.example;
 
 import com.google.zxing.*;
+
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.io.File;
@@ -55,19 +57,15 @@ public class PDFTools {
     }
 
     private static BufferedImage rotateImage(BufferedImage image, double degree) {
-        final double rads = Math.toRadians(degree);
-        final double sin = Math.abs(Math.sin(rads));
-        final double cos = Math.abs(Math.cos(rads));
-        final int w = (int) Math.floor(image.getWidth() * cos + image.getHeight() * sin);
-        final int h = (int) Math.floor(image.getHeight() * cos + image.getWidth() * sin);
-        final BufferedImage rotatedImage = new BufferedImage(w, h, image.getType());
-        final AffineTransform at = new AffineTransform();
-        at.translate(w / 2, h / 2);
-        at.rotate(rads,0, 0);
-        at.translate(-image.getWidth() / 2, -image.getHeight() / 2);
-        final AffineTransformOp rotateOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
-        rotateOp.filter(image,rotatedImage);
-        return rotatedImage;
+        int w = image.getWidth();
+        int h = image.getHeight();
+        BufferedImage result = new BufferedImage(w, h, image.getType());
+        Graphics2D g2 = result.createGraphics();
+        g2.setColor(Color.WHITE);
+        g2.fillRect(0, 0, w, h);
+        g2.rotate(Math.toRadians(degree), w/2, h/2);
+        g2.drawImage(image,null,0,0);
+        return result;
     }
 
     private static double getQRAngle(BufferedImage image) throws NotFoundException {
