@@ -6,24 +6,28 @@ import org.example.QRexam;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Student implements Comparable<Student> {
-    private String id;
+    private Integer id;
+    private String matno;
     private String name1;
     private String name2;
     private Map<String, Page> pages = null;
 
-    public Student(String id) {
+    public Student(Integer id) {
+        this(id, null);
+    }
+
+    public Student(Integer id, String matno) {
         this.id = id;
+        this.matno = matno;
 
         /* set student's pages */
         this.pages = new LinkedHashMap<>();
         try {
-            Files.newDirectoryStream(QRexam.getBase_dir().resolve(this.getId())).forEach((Path p) -> {
+            Files.newDirectoryStream(QRexam.getBase_dir().resolve(""+this.getId())).forEach((Path p) -> {
                 Page page = new Page(p);
                 this.pages.put(page.getPageNo(), page);
             });
@@ -32,12 +36,20 @@ public class Student implements Comparable<Student> {
         }
     }
 
-    public String getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getMatno() {
+        return matno;
+    }
+
+    public void setMatno(String matno) {
+        this.matno = matno;
     }
 
     public String getName1() {
@@ -76,20 +88,23 @@ public class Student implements Comparable<Student> {
 
     @Override
     public String toString() {
-        if(this.getName() == null || this.getName().isBlank()) {
-            return this.id;
+        if(this.matno == null) {
+            return "#"+id;
         }
-        return String.format("%s (%s)", this.id, this.getName());
+        if(this.getName() == null || this.getName().isBlank()) {
+            return this.matno;
+        }
+        return String.format("%s (%s)", this.matno, this.getName());
     }
 
     @Override
     public int compareTo(Student that) {
         try {
-            int thisId = Integer.parseInt(this.id);
-            int thatId = Integer.parseInt(that.id);
-            return thisId - thatId;
+            int thisMatNo = Integer.parseInt(this.matno);
+            int thatMatNo = Integer.parseInt(that.matno);
+            return thisMatNo - thatMatNo;
         } catch (Exception e) {
-            return this.id.compareTo(that.id);
+            return this.matno.compareTo(that.matno);
         }
     }
 }

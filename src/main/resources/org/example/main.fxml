@@ -7,13 +7,16 @@
 <?import javafx.scene.layout.*?>
 
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.text.Text?>
+<?import np.com.ngopal.control.AutoFillTextBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.example.Controller"
             fx:id="fullPageBorderPane" onKeyPressed="#imageKeyReleased">
     <top>
         <VBox>
             <BorderPane>
-                <left><Label text="Working Directory: "/></left>
+                <left><Label text=" Working Directory: "/></left>
                 <center><TextField fx:id="working_dir"/></center>
                 <right>
                     <HBox>
@@ -26,13 +29,13 @@
         </VBox>
     </top>
     <left>
-        <HBox prefWidth="200">
-            <VBox>
-                <Label text="Students"></Label>
-                <TextField prefWidth="100" fx:id="studentName" onKeyReleased="#changeStudentName"></TextField>
+        <HBox>
+            <VBox prefWidth="150">
+                <Label text=" Students"></Label>
+                <TextField fx:id="studentMatno" onKeyReleased="#changeStudent"/>
                 <ListView VBox.vgrow="ALWAYS" fx:id="listView_students" onMouseClicked="#clickStudent"></ListView>
             </VBox>
-            <VBox>
+            <VBox maxWidth="50">
                 <Label text="Pages"></Label>
                 <ListView VBox.vgrow="ALWAYS" fx:id="listView_pages" onMouseClicked="#clickPage"></ListView>
             </VBox>
@@ -41,9 +44,12 @@
     <center>
         <BorderPane>
             <left>
-                <Pane fx:id="fullPageImagePane" onMousePressed="#fullPageImageDragStart" onMouseReleased="#fullPageImageDragStop">
-                    <ImageView fx:id="fullPageImageView"></ImageView>
-                </Pane>
+                <VBox>
+                    <Label fx:id="studentName" style="-fx-font-weight: bold"/>
+                    <Pane fx:id="fullPageImagePane" onMousePressed="#fullPageImageDragStart" onMouseReleased="#fullPageImageDragStop">
+                        <ImageView fx:id="fullPageImageView"></ImageView>
+                    </Pane>
+                </VBox>
             </left>
             <center>
                 <BorderPane>
@@ -52,7 +58,7 @@
                             <left>
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text=" Exercise: "/>
-                                    <TextField prefWidth="100" fx:id="exerciseLabel" onKeyReleased="#changeExerciseLabel"/>
+                                    <TextField prefWidth="100" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
                                     <Button text="Delete" onAction="#deleteExercise"/>
                                     <Button text="↥+"/>
                                     <Button text="↥-"/>
@@ -63,7 +69,7 @@
                                     <Button text="↦+"/>
                                     <Button text="↦-"/>
                                     <Label text="Points: "/>
-                                    <TextField prefWidth="35"/>
+                                    <TextField fx:id="exercisePoints" prefWidth="35" onKeyReleased="#changeExercise"/>
                                 </HBox>
                             </left>
                             <right>
@@ -101,6 +107,7 @@
         <VBox prefWidth="100">
             <Label text="Exercises"></Label>
             <ListView VBox.vgrow="ALWAYS" fx:id="listView_exercises" onMouseClicked="#clickExercise"></ListView>
+            <TextFlow><Text text="Σ Points: "/><Text fx:id="total_points" text="995.5"/></TextFlow>
         </VBox>
     </right>
 </BorderPane>

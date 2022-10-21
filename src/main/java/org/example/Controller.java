@@ -2,24 +2,28 @@ package org.example;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.Map;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import org.example.elements.MarkingPane;
@@ -39,12 +43,16 @@ public class Controller {
     @FXML ScrollPane answersScrollPane;
     @FXML Pane fullPageImagePane;
     @FXML ImageView fullPageImageView;
-    @FXML TextField studentName;
+    @FXML TextField studentMatno;
+    @FXML Label studentName;
     @FXML TextField exerciseLabel;
+    @FXML TextField exercisePoints;
+    @FXML Text total_points;
 
     ObservableList<Student> list_students = FXCollections.observableArrayList();
     ObservableList<Page> list_pages = FXCollections.observableArrayList();
     ObservableList<Exercise> list_exercises = FXCollections.observableArrayList();
+    ObservableList<String> student_matno_autocomplete = FXCollections.observableArrayList();
 
     private double[] image_click = new double[2];
 
@@ -52,6 +60,17 @@ public class Controller {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
+
+        student_matno_autocomplete.add("3242342");
+        student_matno_autocomplete.add("1234567");
+        student_matno_autocomplete.add("1234777");
+        student_matno_autocomplete.add("1234888");
+        student_matno_autocomplete.add("1234889");
+        student_matno_autocomplete.add("1234890");
+        student_matno_autocomplete.add("1234898");
+        student_matno_autocomplete.add("1234898");
+        student_matno_autocomplete.add("1234899");
+        student_matno_autocomplete.add("1234900");
 
         working_dir.setText(QRexam.getBase_dir().toString());
 
@@ -77,6 +96,8 @@ public class Controller {
         } catch (SQLException e) {
             showError("DB Error: getExercises");
         }
+
+        refreshTotalPoints();
     }
 
     public void clickStudent(MouseEvent mouseEvent) {
@@ -84,7 +105,8 @@ public class Controller {
         Page page_was = (Page) listView_pages.getSelectionModel().getSelectedItem();
 
         if(student == null) { return; }
-        studentName.setText(student.getName());
+        studentMatno.setText(student.getMatno() != null ? student.getMatno() : "");
+        studentName.setText(student.getName() != null ? " "+student.getName() : "");
 
         /* fill pages list */
         list_pages.clear();
@@ -121,7 +143,9 @@ public class Controller {
     public void clickExercise(MouseEvent mouseEvent) {
         Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
         if(exercise == null) { return; }
+
         exerciseLabel.setText(exercise.getLabel());
+        exercisePoints.setText(exercise.getPoints() == null ? "" : ""+exercise.getPoints());
 
         /* show exam page */
         if(listView_students.getSelectionModel().isEmpty()
@@ -135,8 +159,23 @@ public class Controller {
 
         /* show answers list */
         answers_list.getChildren().clear();
+        Map<String, BigDecimal> feedback_map;
+        ObservableList<String> feedback_list;
+        try {
+            feedback_map = QRexam.db.getFeedback(exercise);
+            feedback_list = FXCollections.observableArrayList();
+            feedback_map.forEach((feedback, points) -> feedback_list.add(feedback));
+        } catch (SQLException e) {
+            showError("DB Error: feedback for exercise "+exercise);
+            return;
+        }
+
         for(Student student : list_students) {
-            answers_list.getChildren().add(new MarkingPane(student));
+            try {
+                answers_list.getChildren().add(new MarkingPane(student, exercise, feedback_map, feedback_list));
+            } catch (SQLException e) {
+                showError("DB Error: Answer "+student+" / "+exercise);
+            }
             try {
                 ImageView imageView = new ImageView();
                 imageView.setImage(student.getAnswerImage(exercise));
@@ -158,10 +197,26 @@ public class Controller {
         }
     }
 
-    public void changeExerciseLabel(KeyEvent keyEvent) {
+    public void changeExercise(KeyEvent keyEvent) {
         Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
         if(exercise == null) { return; }
+
         exercise.setLabel(exerciseLabel.getText());
+        try {
+            BigDecimal points = new BigDecimal(exercisePoints.getText());
+            if(points.compareTo(BigDecimal.ZERO) >= 0) {
+                exercise.setPoints(points);
+            } else {
+                exercise.setPoints(null);
+                exercisePoints.setText("");
+            }
+        } catch (NumberFormatException e) {
+            exercise.setPoints(null);
+            exercisePoints.setText("");
+        }
+
+        refreshTotalPoints();
+
         try {
             QRexam.db.persist(exercise);
         } catch (SQLException e) {
@@ -171,9 +226,23 @@ public class Controller {
         FXCollections.sort(list_exercises, (a,b)->a.compareTo(b));
     }
 
+    private void refreshTotalPoints() {
+        BigDecimal total = list_exercises.stream()
+                .map(e -> e.getPoints())
+                .filter(p -> p != null)
+                .reduce((p1, p2) -> p1.add(p2))
+                .orElse(BigDecimal.ZERO);
+        total_points.setText(total.toString());
+    }
+
     public void deleteExercise(ActionEvent actionEvent) {
         Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
         if(exercise == null) { return; }
+        try {
+            QRexam.db.delete(exercise);
+        } catch (SQLException e) {
+            showError("DB Error: Deleting exercise "+exercise);
+        }
         list_exercises.remove(exercise);
         listView_exercises.getSelectionModel().clearSelection();
         exerciseLabel.setText("");
@@ -238,14 +307,15 @@ public class Controller {
     }
 
 
-    public void changeStudentName(KeyEvent keyEvent) {
+    public void changeStudent(KeyEvent keyEvent) {
         Student student = (Student) listView_students.getSelectionModel().getSelectedItem();
-        student.setName1(studentName.getText());
+        student.setMatno(studentMatno.getText());
         try {
             QRexam.db.persist(student);
         } catch (SQLException e) {
             showError("DB Error: "+student);
         }
+        FXCollections.sort(list_students, (a,b)->a.compareTo(b));
         listView_students.refresh();
     }
 
@@ -330,7 +400,7 @@ public class Controller {
     }
 
     public void imageKeyReleased(KeyEvent keyEvent) {
-        if(keyEvent.getCode().getCode() == 127) { /* DELETE key */
+        if(keyEvent.getCode() == KeyCode.DELETE) {
             Page page = (Page) listView_pages.getSelectionModel().getSelectedItem();
             Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
             if(page != null && exercise != null) {

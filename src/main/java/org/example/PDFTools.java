@@ -35,7 +35,7 @@ public class PDFTools {
 
             if(page_id == 1) {
                 /* store new student in DB */
-                Student student = new Student(""+exam_id);
+                Student student = new Student(exam_id);
                 try {
                     QRexam.db.persist(student);
                 } catch (SQLException e) {
