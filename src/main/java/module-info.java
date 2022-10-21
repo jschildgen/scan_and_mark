@@ -6,7 +6,7 @@ module org.example {
     requires org.apache.pdfbox.tools;
     requires com.google.zxing;
     requires com.google.zxing.javase;
-
+    requires java.sql;
     opens org.example to javafx.fxml;
     exports org.example;
 }

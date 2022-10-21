@@ -1,29 +1,23 @@
 package org.example;
 
 import com.google.zxing.*;
-
-import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.image.AffineTransformOp;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.awt.image.BufferedImage;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
-import javafx.application.Platform;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
+import org.example.model.Student;
 
-import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PDFTools {
     public static void splitPDF(File pdffile, int numpages) throws IOException {
@@ -34,10 +28,21 @@ public class PDFTools {
         for (int page = 0; page < document.getNumberOfPages(); ++page) {
             exam_id = page / numpages + 1;
             page_id = page % numpages + 1;
-            Path folder = QRexam.base_dir.resolve(""+exam_id);
+            Path folder = QRexam.getBase_dir().resolve(""+exam_id);
             if(!Files.exists(folder)) {
                 Files.createDirectory(folder);
             }
+
+            if(page_id == 1) {
+                /* store new student in DB */
+                Student student = new Student(""+exam_id);
+                try {
+                    QRexam.db.persist(student);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
             BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
             double degree;
 

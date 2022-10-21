@@ -13,7 +13,8 @@ import java.util.Map;
 
 public class Student implements Comparable<Student> {
     private String id;
-    private String name;
+    private String name1;
+    private String name2;
     private Map<String, Page> pages = null;
 
     public Student(String id) {
@@ -22,7 +23,7 @@ public class Student implements Comparable<Student> {
         /* set student's pages */
         this.pages = new LinkedHashMap<>();
         try {
-            Files.newDirectoryStream(QRexam.base_dir.resolve(this.getId())).forEach((Path p) -> {
+            Files.newDirectoryStream(QRexam.getBase_dir().resolve(this.getId())).forEach((Path p) -> {
                 Page page = new Page(p);
                 this.pages.put(page.getPageNo(), page);
             });
@@ -39,12 +40,26 @@ public class Student implements Comparable<Student> {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getName1() {
+        return name1;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName1(String name1) {
+        this.name1 = name1;
+    }
+
+    public String getName2() {
+        return name2;
+    }
+
+    public void setName2(String name2) {
+        this.name2 = name2;
+    }
+
+    public String getName() {
+        if(name1 == null) { return null; }
+        if(name2 == null) { return name1; }
+        return name1+" "+name2;
     }
 
     public Map<String, Page> getPages() {
@@ -61,10 +76,10 @@ public class Student implements Comparable<Student> {
 
     @Override
     public String toString() {
-        if(this.name == null || this.name.isBlank()) {
+        if(this.getName() == null || this.getName().isBlank()) {
             return this.id;
         }
-        return String.format("%s (%s)", this.id, this.name);
+        return String.format("%s (%s)", this.id, this.getName());
     }
 
     @Override

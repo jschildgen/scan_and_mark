@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -52,17 +53,29 @@ public class Controller {
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
 
-        working_dir.setText(QRexam.base_dir.toString());
+        working_dir.setText(QRexam.getBase_dir().toString());
 
         list_students.clear();
         try {
-            Files.newDirectoryStream(QRexam.base_dir).forEach((Path p) -> {
-                if(!Files.isDirectory(p)) { return; }
-                list_students.add(new Student(p.getFileName().toString()));
-            });
-            FXCollections.sort(list_students, (a,b)->a.compareTo(b));
-        } catch (IOException e) {
-            e.printStackTrace();
+            for(Student student : QRexam.db.getStudents()) {
+                list_students.add(student);
+            }
+        } catch (SQLException e) {
+            showError("DB Error: getStudents");
+        }
+
+        if(list_students.size() > 0) {
+            listView_students.getSelectionModel().select(0);
+            clickStudent(null);
+        }
+
+        list_exercises.clear();
+        try {
+            for(Exercise exercise : QRexam.db.getExercises()) {
+                list_exercises.add(exercise);
+            }
+        } catch (SQLException e) {
+            showError("DB Error: getExercises");
         }
     }
 
@@ -149,6 +162,11 @@ public class Controller {
         Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
         if(exercise == null) { return; }
         exercise.setLabel(exerciseLabel.getText());
+        try {
+            QRexam.db.persist(exercise);
+        } catch (SQLException e) {
+            showError("DB Error: "+exercise);
+        }
         listView_exercises.refresh();
         FXCollections.sort(list_exercises, (a,b)->a.compareTo(b));
     }
@@ -185,14 +203,14 @@ public class Controller {
             return;
         }
 
-        if(pos[1][0] <= pos[0][0] || pos[1][1] <= pos[0][1] ) {
-            /* negative rectangle size */
-            return;
-        }
-
         if(FULL_WIDTH_EXERCISES) {
             pos[0][0] = 0;
             pos[1][0] = fullPageImageView.getImage().getWidth();
+        }
+
+        if(pos[1][0] <= pos[0][0] || pos[1][1] <= pos[0][1] ) {
+            /* negative rectangle size */
+            return;
         }
 
         TextInputDialog textInputDialog = new TextInputDialog();
@@ -204,6 +222,12 @@ public class Controller {
         Page page = (Page) listView_pages.getSelectionModel().getSelectedItem();
 
         Exercise e = new Exercise(input, page.getPageNo(), pos);
+        try {
+            QRexam.db.persist(e);
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            showError("DB Error: "+e);
+        }
         list_exercises.add(e);
         FXCollections.sort(list_exercises, (a,b)->a.compareTo(b));
 
@@ -216,7 +240,12 @@ public class Controller {
 
     public void changeStudentName(KeyEvent keyEvent) {
         Student student = (Student) listView_students.getSelectionModel().getSelectedItem();
-        student.setName(studentName.getText());
+        student.setName1(studentName.getText());
+        try {
+            QRexam.db.persist(student);
+        } catch (SQLException e) {
+            showError("DB Error: "+student);
+        }
         listView_students.refresh();
     }
 
@@ -229,12 +258,10 @@ public class Controller {
     public void loadDir(ActionEvent actionEvent) {
         Path newDir = Paths.get(working_dir.getText());
         if(working_dir.getText().isBlank() || !Files.exists(newDir) || !Files.isDirectory(newDir)) {
-            Alert a = new Alert(AlertType.ERROR);
-            a.setContentText("Invalid directory");
-            a.show();
+            showError("Invalid directory");
             return;
         }
-        QRexam.base_dir = newDir;
+        QRexam.setBase_dir(newDir);
         initialize();
     }
 
@@ -250,17 +277,13 @@ public class Controller {
         try {
             numpages = Integer.parseInt(input);
         } catch (NumberFormatException e) {
-            Alert a = new Alert(AlertType.ERROR);
-            a.setContentText("Invalid number");
-            a.show();
+            showError("Invalid number");
             return;
         }
         try {
             PDFTools.splitPDF(selectedFile, numpages);
         } catch (IOException e) {
-            Alert a = new Alert(AlertType.ERROR);
-            a.setContentText("Error splitting PDF");
-            a.show();
+            showError("Error splitting PDF");
             return;
         }
         initialize();
@@ -300,6 +323,11 @@ public class Controller {
         return windowPos;
     }
 
+    private void showError(String msg) {
+        Alert a = new Alert(AlertType.ERROR);
+        a.setContentText(msg);
+        a.show();
+    }
 
     public void imageKeyReleased(KeyEvent keyEvent) {
         if(keyEvent.getCode().getCode() == 127) { /* DELETE key */

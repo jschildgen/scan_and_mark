@@ -1,18 +1,36 @@
 package org.example.model;
 
-import javafx.scene.Node;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
+import org.example.QRexam;
+
+import java.math.BigDecimal;
+import java.sql.SQLException;
 
 public class Exercise implements Comparable<Exercise> {
+    private Integer id;
     private String label;
     private String pageNo;
+    private BigDecimal points;
     private double[][] pos;
+
+    public Exercise(Integer id, String label, String pageNo, double[][] pos) {
+        this.id = id;
+        this.label = label;
+        this.pageNo = pageNo;
+        this.pos = pos;
+    }
 
     public Exercise(String label, String pageNo, double[][] pos) {
         this.label = label;
         this.pageNo = pageNo;
         this.pos = pos;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getLabel() {
@@ -25,6 +43,14 @@ public class Exercise implements Comparable<Exercise> {
 
     public String getPageNo() {
         return this.pageNo;
+    }
+
+    public BigDecimal getPoints() {
+        return points;
+    }
+
+    public void setPoints(BigDecimal points) {
+        this.points = points;
     }
 
     public double[][] getPos() {

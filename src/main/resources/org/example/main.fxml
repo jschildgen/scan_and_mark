@@ -68,17 +68,17 @@
                             </left>
                             <right>
                                 <HBox alignment="CENTER_RIGHT">
-                                    <RadioButton text="All" selected="true">
+                                    <RadioButton text="All (107)" selected="true">
                                         <toggleGroup>
                                             <ToggleGroup fx:id="show_exercises"/>
                                         </toggleGroup>
                                     </RadioButton>
-                                    <RadioButton text="Not marked">
+                                    <RadioButton text="Not marked (100)">
                                         <toggleGroup>
                                             <fx:reference source="show_exercises"/>
                                         </toggleGroup>
                                     </RadioButton>
-                                    <RadioButton text="Completed">
+                                    <RadioButton text="Completed (7)">
                                         <toggleGroup>
                                             <fx:reference source="show_exercises"/>
                                         </toggleGroup>
