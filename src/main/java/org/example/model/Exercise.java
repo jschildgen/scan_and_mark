@@ -57,6 +57,10 @@ public class Exercise implements Comparable<Exercise> {
         return pos;
     }
 
+    public void setPos(double[][] pos) {
+        this.pos = pos;
+    }
+
     @Override
     public String toString() {
         return this.label;

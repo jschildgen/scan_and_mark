@@ -59,14 +59,14 @@
                                     <Label text=" Exercise: "/>
                                     <TextField prefWidth="100" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
                                     <Button text="Delete" onAction="#deleteExercise"/>
-                                    <Button text="↥+"/>
-                                    <Button text="↥-"/>
-                                    <Button text="↧+"/>
-                                    <Button text="↧-"/>
-                                    <Button text="↤+"/>
-                                    <Button text="↤-"/>
-                                    <Button text="↦+"/>
-                                    <Button text="↦-"/>
+                                    <Button text="↥+" onAction="#resizeExercise"/>
+                                    <Button text="↥-" onAction="#resizeExercise"/>
+                                    <Button text="↧+" onAction="#resizeExercise"/>
+                                    <Button text="↧-" onAction="#resizeExercise"/>
+                                    <Button text="↤+" onAction="#resizeExercise"/>
+                                    <Button text="↤-" onAction="#resizeExercise"/>
+                                    <Button text="↦+" onAction="#resizeExercise"/>
+                                    <Button text="↦-" onAction="#resizeExercise"/>
                                     <Label text="Points: "/>
                                     <TextField fx:id="exercisePoints" prefWidth="35" onKeyReleased="#changeExercise"/>
                                 </HBox>

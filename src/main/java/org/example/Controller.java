@@ -265,8 +265,9 @@ public class Controller {
 
         if(pos[0][0] == pos[1][0] && pos[0][1] == pos[1][1]) {
             /* no drag, just click (on rectangle?) */
+            Page page = (Page) listView_pages.getSelectionModel().getSelectedItem();
             list_exercises.stream()
-                    .filter(e -> e.containsPoint(pos[0]))
+                    .filter(e -> e.containsPoint(pos[0]) && e.getPageNo().equals(page.getPageNo()))
                     .forEach(e -> listView_exercises.getSelectionModel().select(e));
             clickExercise(null);
             return;
@@ -411,5 +412,34 @@ public class Controller {
                 deleteExercise(null);
             }
         }
+    }
+
+    public void resizeExercise(ActionEvent actionEvent) {
+        if(!(actionEvent.getSource() instanceof Button)) { return; }
+
+        Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
+        if(exercise == null) { return; }
+
+        double pos[][] = exercise.getPos();
+        final double step = 10;
+
+        String action = ((Button) actionEvent.getSource()).getText();
+        switch (action) {
+            case "↥+": pos[0][1] -= step; break;
+            case "↥-": pos[0][1] += step; break;
+            case "↧+": pos[1][1] += step; break;
+            case "↧-": pos[1][1] -= step; break;
+            case "↤+": pos[0][0] -= step; break;
+            case "↤-": pos[0][0] += step; break;
+            case "↦+": pos[1][0] += step; break;
+            case "↦-": pos[1][0] -= step; break;
+        }
+        exercise.setPos(pos);
+        try {
+            QRexam.db.persist(exercise);
+        } catch (SQLException e) {
+            showError("Error resizing exercise: "+exercise);
+        }
+        refreshRectangles();
     }
 }
