@@ -22,6 +22,7 @@
                         <Button text="..." onAction="#chooseDir"/>
                         <Button text="Load" onAction="#loadDir" />
                         <Button text="Import PDF" onAction="#importPDF"/>
+                        <Button text="Import Students" onAction="#importStudents"/>
                     </HBox>
                 </right>
             </BorderPane>

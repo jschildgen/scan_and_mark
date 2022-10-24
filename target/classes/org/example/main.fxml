@@ -21,6 +21,7 @@
                     <HBox>
                         <Button text="..." onAction="#chooseDir"/>
                         <Button text="Load" onAction="#loadDir" />
+                        <Button text="Import Students" onAction="#importStudents"/>
                         <Button text="Import PDF" onAction="#importPDF"/>
                     </HBox>
                 </right>

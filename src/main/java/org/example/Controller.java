@@ -7,13 +7,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.ImageView;
@@ -24,8 +31,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
+import javafx.stage.*;
 import org.example.elements.MarkingPane;
 import org.example.model.Exercise;
 import org.example.model.Page;
@@ -52,7 +58,8 @@ public class Controller {
     ObservableList<Student> list_students = FXCollections.observableArrayList();
     ObservableList<Page> list_pages = FXCollections.observableArrayList();
     ObservableList<Exercise> list_exercises = FXCollections.observableArrayList();
-    ObservableList<String> student_matno_autocomplete = FXCollections.observableArrayList();
+
+    private Map<String, Student> student_matno_autocomplete = new HashMap<>();
 
     private double[] image_click = new double[2];
 
@@ -60,17 +67,6 @@ public class Controller {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
-
-        student_matno_autocomplete.add("3242342");
-        student_matno_autocomplete.add("1234567");
-        student_matno_autocomplete.add("1234777");
-        student_matno_autocomplete.add("1234888");
-        student_matno_autocomplete.add("1234889");
-        student_matno_autocomplete.add("1234890");
-        student_matno_autocomplete.add("1234898");
-        student_matno_autocomplete.add("1234898");
-        student_matno_autocomplete.add("1234899");
-        student_matno_autocomplete.add("1234900");
 
         working_dir.setText(QRexam.getBase_dir().toString());
 
@@ -106,7 +102,7 @@ public class Controller {
 
         if(student == null) { return; }
         studentMatno.setText(student.getMatno() != null ? student.getMatno() : "");
-        studentName.setText(student.getName() != null ? " "+student.getName() : "");
+        studentName.setText(student.getName() != null ? " "+student.toString() : "");
 
         /* fill pages list */
         list_pages.clear();
@@ -310,7 +306,13 @@ public class Controller {
 
     public void changeStudent(KeyEvent keyEvent) {
         Student student = (Student) listView_students.getSelectionModel().getSelectedItem();
-        student.setMatno(studentMatno.getText());
+
+        student.setMatno(studentMatno.getText().isBlank() ? "" : studentMatno.getText());
+
+        if(student_matno_autocomplete.containsKey(student.getMatno())) {
+            student.fusion(student_matno_autocomplete.get(student.getMatno()));
+        }
+
         try {
             QRexam.db.persist(student);
         } catch (SQLException e) {
@@ -441,5 +443,48 @@ public class Controller {
             showError("Error resizing exercise: "+exercise);
         }
         refreshRectangles();
+    }
+
+    public void importStudents(ActionEvent actionEvent) {
+        Dialog<String> dialog = new Dialog<>();
+        dialog.setTitle("Import Students");
+        BorderPane borderPane = new BorderPane();
+        borderPane.setTop(new Label("Copy/Paste tab-separated list of students' matno and name (e.g. from Excel), one student per line."));
+        TextArea students_textarea = new TextArea();
+        borderPane.setCenter(students_textarea);
+
+        ButtonType importButtonType = new ButtonType("Import Students", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(importButtonType);
+
+        dialog.setResultConverter(dialogButton -> students_textarea.getText());
+
+        dialog.getDialogPane().setContent(borderPane);
+        Platform.runLater(() -> students_textarea.requestFocus());
+
+        Optional<String> result = dialog.showAndWait();
+        if(result.isPresent()) {
+            for(String line : result.get().split("\n")) {
+                String[] parts = line.split("\t");
+                if(parts.length < 2) { continue; }
+                Student student = new Student(parts[0]); // matno
+                student.setName1(parts[1]); // name1
+                if(parts.length >= 3) {
+                    student.setName2(parts[2]);
+                }
+                student_matno_autocomplete.put(student.getMatno(), student);
+            }
+
+            for(Student student : list_students) {
+                if(student_matno_autocomplete.containsKey(student.getMatno())) {
+                    student.fusion(student_matno_autocomplete.get(student.getMatno()));
+                    try {
+                        QRexam.db.persist(student);
+                    } catch (SQLException e) {
+                        showError("Error setting student name: "+student);
+                    }
+                }
+                listView_students.refresh();
+            }
+        }
     }
 }

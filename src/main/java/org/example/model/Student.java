@@ -20,6 +20,10 @@ public class Student implements Comparable<Student> {
         this(id, null);
     }
 
+    public Student(String matno) {
+        this.matno = matno;
+    }
+
     public Student(Integer id, String matno) {
         this.id = id;
         this.matno = matno;
@@ -99,6 +103,9 @@ public class Student implements Comparable<Student> {
 
     @Override
     public int compareTo(Student that) {
+        if(this.matno == null && that.matno == null) { return this.id.compareTo(that.id); }
+        if(this.matno == null) { return -1; }
+        if(that.matno == null) { return 1; }
         try {
             int thisMatNo = Integer.parseInt(this.matno);
             int thatMatNo = Integer.parseInt(that.matno);
@@ -106,5 +113,11 @@ public class Student implements Comparable<Student> {
         } catch (Exception e) {
             return this.matno.compareTo(that.matno);
         }
+    }
+
+    public void fusion(Student other) {
+        this.matno = other.matno;
+        this.name1 = other.name1;
+        this.name2 = other.name2;
     }
 }
