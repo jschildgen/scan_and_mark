@@ -234,6 +234,16 @@ public class Controller {
     public void deleteExercise(ActionEvent actionEvent) {
         Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
         if(exercise == null) { return; }
+
+        Alert alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Are you sure?");
+        alert.setContentText("Do you want to delete exercise "+exercise+"?");
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() != ButtonType.OK){
+            return;
+        }
+
         try {
             QRexam.db.delete(exercise);
         } catch (SQLException e) {
@@ -486,5 +496,9 @@ public class Controller {
                 listView_students.refresh();
             }
         }
+    }
+
+    public void changeExerciseSettings(ActionEvent actionEvent) {
+        clickExercise(null);
     }
 }

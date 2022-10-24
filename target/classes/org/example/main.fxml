@@ -21,8 +21,8 @@
                     <HBox>
                         <Button text="..." onAction="#chooseDir"/>
                         <Button text="Load" onAction="#loadDir" />
-                        <Button text="Import Students" onAction="#importStudents"/>
                         <Button text="Import PDF" onAction="#importPDF"/>
+                        <Button text="Import Students" onAction="#importStudents"/>
                     </HBox>
                 </right>
             </BorderPane>
@@ -58,7 +58,7 @@
                             <left>
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text=" Exercise: "/>
-                                    <TextField prefWidth="100" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
+                                    <TextField prefWidth="75" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
                                     <Button text="Delete" onAction="#deleteExercise"/>
                                     <Button text="↥+" onAction="#resizeExercise"/>
                                     <Button text="↥-" onAction="#resizeExercise"/>
@@ -70,6 +70,7 @@
                                     <Button text="↦-" onAction="#resizeExercise"/>
                                     <Label text="Points: "/>
                                     <TextField fx:id="exercisePoints" prefWidth="35" onKeyReleased="#changeExercise"/>
+                                    <Button text="Apply" onAction="#changeExerciseSettings"/>
                                 </HBox>
                             </left>
                             <right>
