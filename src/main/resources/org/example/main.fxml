@@ -58,7 +58,7 @@
                             <left>
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text=" Exercise: "/>
-                                    <TextField prefWidth="75" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
+                                    <TextField prefWidth="50" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
                                     <Button text="Delete" onAction="#deleteExercise"/>
                                     <Button text="↥+" onAction="#resizeExercise"/>
                                     <Button text="↥-" onAction="#resizeExercise"/>
@@ -75,19 +75,19 @@
                             </left>
                             <right>
                                 <HBox alignment="CENTER_RIGHT">
-                                    <RadioButton text="All (107)" selected="true">
+                                    <RadioButton text="All () " selected="true" onAction="#filterAnswers" fx:id="filter_answers_all">
                                         <toggleGroup>
-                                            <ToggleGroup fx:id="show_exercises"/>
+                                            <ToggleGroup fx:id="filter_answers"/>
                                         </toggleGroup>
                                     </RadioButton>
-                                    <RadioButton text="Not marked (100)">
+                                    <RadioButton text="Not marked () " onAction="#filterAnswers" fx:id="filter_answers_notmarked">
                                         <toggleGroup>
-                                            <fx:reference source="show_exercises"/>
+                                            <fx:reference source="filter_answers"/>
                                         </toggleGroup>
                                     </RadioButton>
-                                    <RadioButton text="Completed (7)">
+                                    <RadioButton text="Completed ()" onAction="#filterAnswers" fx:id="filter_answers_completed">
                                         <toggleGroup>
-                                            <fx:reference source="show_exercises"/>
+                                            <fx:reference source="filter_answers"/>
                                         </toggleGroup>
                                     </RadioButton>
                                     <Separator></Separator>

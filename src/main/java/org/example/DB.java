@@ -189,11 +189,25 @@ public class DB {
     }
 
 
-    public double getProgress() throws SQLException {
-        Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery("select (select 1.0*count(*) from answers a where points is not null)" +
-                " / ((select count(*) from exercises) * (select count(*) from students))");
-        rs.next();
-        return rs.getDouble(1);
+    public int num_marked_answers() throws SQLException {
+        return num_marked_answers(null);
     }
+    public int num_marked_answers(Exercise exercise) throws SQLException {
+        ResultSet rs;
+        if(exercise == null) {  // over all exercises
+            Statement stmt = conn.createStatement();
+            rs = stmt.executeQuery(
+                    "select count(*) from answers where points is not null");
+        } else {
+            PreparedStatement preparedStatement = conn.prepareStatement(
+                    "select count(*) from answers where points is not null and exercise = ?");
+            preparedStatement.setInt(1, exercise.getId());
+            rs = preparedStatement.executeQuery();
+        }
+
+        rs.next();
+        return rs.getInt(1);
+    }
+
+
 }

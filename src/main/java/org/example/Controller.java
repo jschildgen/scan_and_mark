@@ -33,12 +33,18 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 import javafx.stage.*;
 import org.example.elements.MarkingPane;
+import org.example.model.Answer;
 import org.example.model.Exercise;
 import org.example.model.Page;
 import org.example.model.Student;
 
 public class Controller {
     private static boolean FULL_WIDTH_EXERCISES = true;
+
+    private static enum AnswerFilter { ALL, NOT_MARKTED, COMPLETED  };
+    private AnswerFilter answerFilter = AnswerFilter.ALL;
+
+    public ToggleGroup filter_answers;
     @FXML ProgressBar progress;
     @FXML VBox answers_list;
 
@@ -55,6 +61,9 @@ public class Controller {
     @FXML TextField exerciseLabel;
     @FXML TextField exercisePoints;
     @FXML Text total_points;
+    @FXML RadioButton filter_answers_all;
+    @FXML RadioButton filter_answers_notmarked;
+    @FXML RadioButton filter_answers_completed;
 
     ObservableList<Student> list_students = FXCollections.observableArrayList();
     ObservableList<Page> list_pages = FXCollections.observableArrayList();
@@ -170,8 +179,16 @@ public class Controller {
 
         for(Student student : list_students) {
             try {
-                MarkingPane marking_pane = new MarkingPane(student, exercise, feedback_map, feedback_list);
-                marking_pane.setOnAnswer(answer -> refreshProgress());
+                Answer answer = QRexam.db.getAnswer(student, exercise);
+                if(answerFilter == AnswerFilter.NOT_MARKTED && answer.getPoints() != null) {
+                    continue;
+                }
+                if(answerFilter == AnswerFilter.COMPLETED && answer.getPoints() == null) {
+                    continue;
+                }
+
+                MarkingPane marking_pane = new MarkingPane(answer, feedback_map, feedback_list);
+                marking_pane.setOnAnswer(student_answer -> refreshProgress());
                 answers_list.getChildren().add(marking_pane);
             } catch (SQLException e) {
                 showError("DB Error: Answer "+student+" / "+exercise);
@@ -194,6 +211,7 @@ public class Controller {
                 Label error_label = new Label("Error loading image");
                 answers_list.getChildren().add(error_label);
             }
+            refreshProgress();
         }
     }
 
@@ -237,10 +255,27 @@ public class Controller {
 
     private void refreshProgress() {
         try {
-            progress.setProgress(QRexam.db.getProgress());
+            progress.setProgress(1.0*QRexam.db.num_marked_answers()
+                    / (list_students.size() * list_exercises.size()));
         } catch (SQLException e) {
             showError("DB error: refreshProgress");
         }
+
+        int all = list_students.size();
+        filter_answers_all.setText(filter_answers_all.getText().replaceFirst("\\(\\d*\\)", "("+all+")"));
+
+        Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
+        if(exercise == null) { return; }
+
+        try {
+            int completed = QRexam.db.num_marked_answers(exercise);
+            filter_answers_completed.setText(filter_answers_completed.getText().replaceFirst("\\(\\d*\\)", "("+completed+")"));
+            int not_marked = all-completed;
+            filter_answers_notmarked.setText(filter_answers_notmarked.getText().replaceFirst("\\(\\d*\\)", "("+not_marked+")"));
+        } catch (SQLException e) {
+            showError("DB error: refreshProgress");
+        }
+
     }
 
     public void deleteExercise(ActionEvent actionEvent) {
@@ -512,6 +547,16 @@ public class Controller {
     }
 
     public void changeExerciseSettings(ActionEvent actionEvent) {
+        clickExercise(null);
+    }
+
+    public void filterAnswers(ActionEvent actionEvent) {
+        RadioButton radioButton = (RadioButton)filter_answers.getSelectedToggle();
+        this.answerFilter = switch (radioButton.getId()) {
+            case "filter_answers_notmarked" -> AnswerFilter.NOT_MARKTED;
+            case "filter_answers_completed" -> AnswerFilter.COMPLETED;
+            default -> AnswerFilter.ALL;
+        };
         clickExercise(null);
     }
 }

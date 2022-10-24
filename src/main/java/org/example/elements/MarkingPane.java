@@ -26,8 +26,9 @@ import java.util.function.Supplier;
 public class MarkingPane extends BorderPane {
     private Consumer<Answer> onAnswer;
 
-    public MarkingPane(Student student, Exercise exercise, Map<String, BigDecimal> feedback_map, ObservableList<String> feedback_list) throws SQLException {
-        Answer answer = QRexam.db.getAnswer(student, exercise);
+    public MarkingPane(Answer answer, Map<String, BigDecimal> feedback_map, ObservableList<String> feedback_list) throws SQLException {
+        Student student = answer.getStudent();
+        Exercise exercise = answer.getExercise();
 
         //ObservableList<String> feedback_list = FXCollections.observableArrayList();
         //feedback_items.forEach((feedback, points) -> feedback_list.add(feedback));
