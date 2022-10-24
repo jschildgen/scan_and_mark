@@ -9,7 +9,6 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.text.TextFlow?>
 <?import javafx.scene.text.Text?>
-<?import np.com.ngopal.control.AutoFillTextBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml"
             fx:controller="org.example.Controller"
             fx:id="fullPageBorderPane" onKeyPressed="#imageKeyReleased">

@@ -7,7 +7,6 @@ module org.example {
     requires com.google.zxing;
     requires com.google.zxing.javase;
     requires java.sql;
-    requires javafx.autocomplete.field;
     opens org.example to javafx.fxml;
     exports org.example;
 }

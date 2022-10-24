@@ -37,14 +37,30 @@ public class MarkingPane extends BorderPane {
         points_field.setText(answer.getPoints() != null ? ""+answer.getPoints() : "");
         points_field.setPrefWidth(40);
 
+        points_field.setOnMouseClicked(e -> points_field.selectAll());
+
         ComboBox<String> feedback_field = new ComboBox<>();
 
         EventHandler pointsChangedHandler = e -> {
+            if(points_field.getText().contains(",")) {
+                points_field.setText(points_field.getText().replaceFirst(",","."));
+                points_field.positionCaret(points_field.getText().length());
+            }
             try {
-                answer.setPoints(new BigDecimal(points_field.getText()));
+                BigDecimal points = new BigDecimal(points_field.getText());
+                if(points.compareTo(BigDecimal.ZERO) < 0            // negative points
+                || points.compareTo(exercise.getPoints()) > 0) {    // more points than max. for this exercise
+                    points_field.setText("");
+                    points = null;
+                    return;
+                }
+
+                answer.setPoints(points);
+
             } catch (NumberFormatException ex) {
                 answer.setPoints(null);
                 points_field.setText("");
+                return;
             }
 
             if(!feedback_field.getValue().isBlank()) {

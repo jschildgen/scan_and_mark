@@ -377,7 +377,11 @@ public class Controller {
         point1 = imagePosToWindowPos(point1);
         point2 = imagePosToWindowPos(point2);
         Rectangle rectangle = new Rectangle(point1[0], point1[1], point2[0]-point1[0], point2[1]-point1[1] );
-        rectangle.setFill(new Color(255.0/255,230.0/255, 0, 0.2));
+        if(e.equals(listView_exercises.getSelectionModel().getSelectedItem())) {
+            rectangle.setFill(Color.web("#0583F2", 0.2));
+        } else {
+            rectangle.setFill(Color.web("#8DD5F2", 0.2));
+        }
         return rectangle;
     }
 

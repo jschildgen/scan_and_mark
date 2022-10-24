@@ -77,4 +77,12 @@ public class Exercise implements Comparable<Exercise> {
         return     this.pos[0][0] <= point[0] && this.pos[1][0] >= point[0]
                 && this.pos[0][1] <= point[1] && this.pos[1][1] >= point[1];
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj instanceof Exercise other) {
+            return this.id == other.id;
+        }
+        return false;
+    }
 }
