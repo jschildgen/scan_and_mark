@@ -20,8 +20,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class MarkingPane extends BorderPane {
+    private Consumer<Answer> onAnswer;
+
     public MarkingPane(Student student, Exercise exercise, Map<String, BigDecimal> feedback_map, ObservableList<String> feedback_list) throws SQLException {
         Answer answer = QRexam.db.getAnswer(student, exercise);
 
@@ -52,7 +56,6 @@ public class MarkingPane extends BorderPane {
                 || points.compareTo(exercise.getPoints()) > 0) {    // more points than max. for this exercise
                     points_field.setText("");
                     points = null;
-                    return;
                 }
 
                 answer.setPoints(points);
@@ -60,7 +63,6 @@ public class MarkingPane extends BorderPane {
             } catch (NumberFormatException ex) {
                 answer.setPoints(null);
                 points_field.setText("");
-                return;
             }
 
             if(!feedback_field.getValue().isBlank()) {
@@ -69,7 +71,12 @@ public class MarkingPane extends BorderPane {
                 answer.setFeedback(null);
             }
 
-            if(answer.getPoints() == null && feedback_map.containsKey(answer.getFeedback())
+            if(e != null) {
+                System.out.println(e.getSource());
+            }
+
+            if(e.getSource() instanceof ComboBox   /* feedback was changed => autofill points */
+               &&     answer.getPoints() == null && feedback_map.containsKey(answer.getFeedback())
                                         && feedback_map.get(answer.getFeedback()) != null) {
                 answer.setPoints(feedback_map.get(answer.getFeedback()));
                 points_field.setText(""+answer.getPoints());
@@ -80,9 +87,11 @@ public class MarkingPane extends BorderPane {
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
+
+            this.onAnswer.accept(answer);
         };
         points_field.setOnKeyReleased(e -> {
-            pointsChangedHandler.handle(null);
+            pointsChangedHandler.handle(e);
             feedback_map.put(answer.getFeedback(), answer.getPoints());
         });
 
@@ -92,7 +101,7 @@ public class MarkingPane extends BorderPane {
                 Button button = new Button("" + i);
                 button.setOnAction(e -> {
                     points_field.setText(button.getText());
-                    pointsChangedHandler.handle(null);
+                    pointsChangedHandler.handle(e);
                     feedback_map.put(answer.getFeedback(), answer.getPoints());
                 });
                 points_buttons.add(button);
@@ -100,7 +109,7 @@ public class MarkingPane extends BorderPane {
             Button button = new Button("" + exercise.getPoints());
             button.setOnAction(e -> {
                 points_field.setText(button.getText());
-                pointsChangedHandler.handle(null);
+                pointsChangedHandler.handle(e);
             });
             points_buttons.add(button);
         }
@@ -118,11 +127,11 @@ public class MarkingPane extends BorderPane {
         feedback_field.setMaxWidth(Double.MAX_VALUE);
         feedback_field.setItems(feedback_list);
         feedback_field.getSelectionModel().selectedItemProperty().addListener((options, oldValue, newValue) -> {
-            pointsChangedHandler.handle(null);
+            pointsChangedHandler.handle(new Event(feedback_field, null, null));
         });
         feedback_field.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
             if (!isNowFocused) {
-                pointsChangedHandler.handle(null);
+                pointsChangedHandler.handle(new Event(feedback_field, null, null));
                 if(answer.getFeedback() != null
                         && !feedback_list.contains(answer.getFeedback())) {
                     feedback_list.add(answer.getFeedback());
@@ -131,5 +140,9 @@ public class MarkingPane extends BorderPane {
             }
         });
         this.setCenter(feedback_field);
+    }
+
+    public void setOnAnswer(Consumer<Answer> onAnswer) {
+        this.onAnswer = onAnswer;
     }
 }

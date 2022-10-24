@@ -39,6 +39,7 @@ import org.example.model.Student;
 
 public class Controller {
     private static boolean FULL_WIDTH_EXERCISES = true;
+    @FXML ProgressBar progress;
     @FXML VBox answers_list;
 
     @FXML TextField working_dir;
@@ -94,6 +95,7 @@ public class Controller {
         }
 
         refreshTotalPoints();
+        refreshProgress();
     }
 
     public void clickStudent(MouseEvent mouseEvent) {
@@ -168,7 +170,9 @@ public class Controller {
 
         for(Student student : list_students) {
             try {
-                answers_list.getChildren().add(new MarkingPane(student, exercise, feedback_map, feedback_list));
+                MarkingPane marking_pane = new MarkingPane(student, exercise, feedback_map, feedback_list);
+                marking_pane.setOnAnswer(answer -> refreshProgress());
+                answers_list.getChildren().add(marking_pane);
             } catch (SQLException e) {
                 showError("DB Error: Answer "+student+" / "+exercise);
             }
@@ -231,6 +235,14 @@ public class Controller {
         total_points.setText(total.toString());
     }
 
+    private void refreshProgress() {
+        try {
+            progress.setProgress(QRexam.db.getProgress());
+        } catch (SQLException e) {
+            showError("DB error: refreshProgress");
+        }
+    }
+
     public void deleteExercise(ActionEvent actionEvent) {
         Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
         if(exercise == null) { return; }
@@ -254,6 +266,7 @@ public class Controller {
         exerciseLabel.setText("");
         answers_list.getChildren().clear();
         refreshRectangles();
+        refreshProgress();
     }
 
 

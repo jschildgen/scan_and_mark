@@ -111,4 +111,8 @@
             <TextFlow><Text text="Σ Points: "/><Text fx:id="total_points" text="995.5"/></TextFlow>
         </VBox>
     </right>
+
+    <bottom>
+        <ProgressBar maxWidth="Infinity" progress="0" fx:id="progress"/>
+    </bottom>
 </BorderPane>

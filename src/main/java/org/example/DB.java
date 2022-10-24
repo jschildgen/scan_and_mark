@@ -189,4 +189,11 @@ public class DB {
     }
 
 
+    public double getProgress() throws SQLException {
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("select (select 1.0*count(*) from answers a where points is not null)" +
+                " / ((select count(*) from exercises) * (select count(*) from students))");
+        rs.next();
+        return rs.getDouble(1);
+    }
 }
