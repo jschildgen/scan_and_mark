@@ -7,6 +7,8 @@ module org.example {
     requires com.google.zxing;
     requires com.google.zxing.javase;
     requires java.sql;
+    requires freemarker;
     opens org.example to javafx.fxml;
     exports org.example;
+    exports org.example.model;
 }

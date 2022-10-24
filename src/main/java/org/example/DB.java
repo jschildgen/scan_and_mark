@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class DB {
     private Connection conn;
@@ -110,7 +111,7 @@ public class DB {
     public List<Exercise> getExercises() throws SQLException {
         List<Exercise> exercises = new ArrayList<>();
         Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery("SELECT * FROM exercises ORDER BY label");
+        ResultSet rs = stmt.executeQuery("SELECT * FROM exercises");
         while(rs.next()) {
             double[][] pos = { { rs.getDouble("pos1x"), rs.getDouble("pos1y") }, { rs.getDouble("pos2x"), rs.getDouble("pos2y") }};
             Exercise exercise = new Exercise(rs.getString("label"), rs.getString("page"), pos);
@@ -118,6 +119,7 @@ public class DB {
             exercise.setPoints(rs.getBigDecimal("points"));
             exercises.add(exercise);
         }
+        exercises = exercises.stream().sorted().collect(Collectors.toList());
         return exercises;
     }
 

@@ -23,6 +23,7 @@
                         <Button text="Load" onAction="#loadDir" />
                         <Button text="Import PDF" onAction="#importPDF"/>
                         <Button text="Import Students" onAction="#importStudents"/>
+                        <Button text="Export Feedback" onAction="#exportFeedback"/>
                     </HBox>
                 </right>
             </BorderPane>

@@ -1,8 +1,11 @@
 package org.example;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import javafx.application.Application;
+import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -23,6 +28,12 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -102,6 +113,7 @@ public class Controller {
         } catch (SQLException e) {
             showError("DB Error: getExercises");
         }
+        FXCollections.sort(list_exercises, (a,b)->a.compareTo(b));
 
         refreshTotalPoints();
         refreshProgress();
@@ -398,7 +410,9 @@ public class Controller {
 
     public void importPDF(ActionEvent actionEvent) {
         FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(QRexam.getBase_dir().toFile());
         File selectedFile = fileChooser.showOpenDialog(fullPageBorderPane.getScene().getWindow());
+        if(selectedFile == null) { return; }
         TextInputDialog textInputDialog = new TextInputDialog();
         textInputDialog.setTitle("Number of pages");
         textInputDialog.setContentText("Number of pages per exam:");
@@ -544,6 +558,34 @@ public class Controller {
                 listView_students.refresh();
             }
         }
+    }
+
+    public void exportFeedback(ActionEvent actionEvent) {
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("HTML files (*.html)", "*.html");
+        fileChooser.getExtensionFilters().add(extFilter);
+        fileChooser.setInitialFileName("feedback.html");
+        fileChooser.setInitialDirectory(QRexam.getBase_dir().toFile());
+
+        File selectedFile = fileChooser.showSaveDialog(fullPageBorderPane.getScene().getWindow());
+        if(selectedFile == null) { return; }
+
+        URI uri = selectedFile.toURI();
+        if(!uri.toString().endsWith(".html") && !uri.toString().endsWith(".htm")) {
+            try {
+                uri = new URI(uri.toString()+".html");
+            } catch (URISyntaxException e) { }
+        }
+
+        FeedbackExporter feedbackExporter = new FeedbackExporter();
+        try {
+            feedbackExporter.exportFeedback(Paths.get(uri));
+        } catch (Exception e) {
+            showError("Feedback-Export Error: "+e.getMessage());
+            e.printStackTrace();
+        }
+
+        QRexam.open_browser(uri.toString());
     }
 
     public void changeExerciseSettings(ActionEvent actionEvent) {

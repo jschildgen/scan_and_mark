@@ -17,9 +17,11 @@ import java.sql.SQLException;
 public class QRexam extends Application {
     private static Path base_dir;
     public static DB db;
+    private static Application applicationInstance;
 
     @Override
     public void start(Stage stage) throws IOException {
+        applicationInstance = this;
         setBase_dir(Paths.get("/home/johannes/qrtest"));
 
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
@@ -45,6 +47,10 @@ public class QRexam extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    public static void open_browser(String url) {
+        applicationInstance.getHostServices().showDocument(url);
     }
 
 }

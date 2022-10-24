@@ -69,9 +69,12 @@ public class Exercise implements Comparable<Exercise> {
     @Override
     public int compareTo(Exercise that) {
         try {
-            int thisId = Integer.parseInt(this.label);
-            int thatId = Integer.parseInt(that.label);
-            return thisId - thatId;
+            int thisLabelNumber = Integer.parseInt(this.label.replaceAll("\\D", ""));
+            int thatLabelNumber = Integer.parseInt(that.label.replaceAll("\\D", ""));
+            if(thisLabelNumber == thatLabelNumber) {
+                return this.label.compareTo(that.label);
+            }
+            return thisLabelNumber - thatLabelNumber;
         } catch (Exception e) {
             return this.label.compareTo(that.label);
         }
