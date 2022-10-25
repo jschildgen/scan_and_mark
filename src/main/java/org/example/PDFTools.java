@@ -3,6 +3,7 @@ package org.example;
 import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
+import javafx.application.Platform;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -56,6 +57,8 @@ public class PDFTools {
 
             Path path = folder.resolve(""+ page_id + ".jpg");
             ImageIOUtil.writeImage(bim, path.toString(), 300);
+
+            Controller.setProgress(1.0*page / document.getNumberOfPages());
             System.out.printf("Create file %d/%d: %s (%.1f°)\n", page+1, document.getNumberOfPages(), path, degree);
         }
         document.close();

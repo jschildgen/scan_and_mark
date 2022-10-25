@@ -72,10 +72,6 @@ public class MarkingPane extends BorderPane {
                 answer.setFeedback(null);
             }
 
-            if(e != null) {
-                System.out.println(e.getSource());
-            }
-
             if(e.getSource() instanceof ComboBox   /* feedback was changed => autofill points */
                &&     answer.getPoints() == null && feedback_map.containsKey(answer.getFeedback())
                                         && feedback_map.get(answer.getFeedback()) != null) {

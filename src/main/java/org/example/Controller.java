@@ -55,6 +55,8 @@ public class Controller {
     private static enum AnswerFilter { ALL, NOT_MARKTED, COMPLETED  };
     private AnswerFilter answerFilter = AnswerFilter.ALL;
 
+    private static Controller controllerInstance = null;
+
     public ToggleGroup filter_answers;
     @FXML ProgressBar progress;
     @FXML VBox answers_list;
@@ -88,6 +90,8 @@ public class Controller {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
+
+        if(controllerInstance == null) { controllerInstance = this; }
 
         working_dir.setText(QRexam.getBase_dir().toString());
 
@@ -425,13 +429,15 @@ public class Controller {
             showError("Invalid number");
             return;
         }
-        try {
-            PDFTools.splitPDF(selectedFile, numpages);
-        } catch (IOException e) {
-            showError("Error splitting PDF");
-            return;
-        }
-        initialize();
+        Thread thread = new Thread(() -> {
+            try {
+                PDFTools.splitPDF(selectedFile, numpages);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            Platform.runLater(() -> initialize());
+        });
+        thread.start();
     }
 
     private void refreshRectangles() {
@@ -600,5 +606,9 @@ public class Controller {
             default -> AnswerFilter.ALL;
         };
         clickExercise(null);
+    }
+
+    public static void setProgress(double progress) {
+        Controller.controllerInstance.progress.setProgress(progress);
     }
 }

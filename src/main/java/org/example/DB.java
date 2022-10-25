@@ -75,6 +75,7 @@ public class DB {
         pstmt.setDouble(6+7, exercise.getPos()[0][1]);
         pstmt.setDouble(7+7, exercise.getPos()[1][0]);
         pstmt.setDouble(8+7, exercise.getPos()[1][1]);
+
         pstmt.executeUpdate();
     }
 
