@@ -3,6 +3,8 @@ package org.example;
 import com.google.zxing.*;
 import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
+import com.google.zxing.multi.GenericMultipleBarcodeReader;
+import com.google.zxing.multi.MultipleBarcodeReader;
 import javafx.application.Platform;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
@@ -82,13 +84,19 @@ public class PDFTools {
         BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
                 new BufferedImageLuminanceSource(image)));
 
-        Result qrCodeResult = new MultiFormatReader().decode(binaryBitmap,
-                hintMap);
-        ResultPoint[] p = qrCodeResult.getResultPoints();
+        MultipleBarcodeReader multipleBarcodeReader = new GenericMultipleBarcodeReader(new MultiFormatReader());
+        Result[] results = multipleBarcodeReader.decodeMultiple(binaryBitmap, hintMap);
+        //Result qrCodeResult = new MultiFormatReader().decode(binaryBitmap, hintMap);
+        for(Result qrCodeResult : results) {
+            if(qrCodeResult.getBarcodeFormat() != BarcodeFormat.QR_CODE) { continue; }
+            ResultPoint[] p = qrCodeResult.getResultPoints();
 
-        double degree = Math.toDegrees(Math.atan( (p[0].getX()-p[1].getX()) / (p[0].getY() - p[1].getY())));
-        double height = Math.sqrt( Math.pow(p[0].getX()-p[1].getX(),2) + Math.pow(p[0].getY()-p[1].getY(),2) );
+            double degree = Math.toDegrees(Math.atan((p[0].getX() - p[1].getX()) / (p[0].getY() - p[1].getY())));
+            double height = Math.sqrt(Math.pow(p[0].getX() - p[1].getX(), 2) + Math.pow(p[0].getY() - p[1].getY(), 2));
 
-        return degree;
+            return degree;
+        }
+        System.out.println("No QR Code found");
+        return 0.77;
     }
 }
