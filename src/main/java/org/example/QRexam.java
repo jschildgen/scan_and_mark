@@ -24,6 +24,8 @@ public class QRexam extends Application {
         applicationInstance = this;
         setBase_dir(Paths.get("/home/johannes/qrtest"));
 
+        SwipeApp.startServer();
+
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
         stage.setTitle("QRexam");
         Scene scene = new Scene(root, 1400, 900);
@@ -47,6 +49,12 @@ public class QRexam extends Application {
 
     public static void main(String[] args) {
         launch();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        SwipeApp.stopServer();
+        super.stop();
     }
 
     public static void open_browser(String url) {

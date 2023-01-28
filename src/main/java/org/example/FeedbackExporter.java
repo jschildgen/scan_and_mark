@@ -37,8 +37,6 @@ public class FeedbackExporter {
 
         List<Exercise> exercises = QRexam.db.getExercises();
 
-        BigDecimal exam_max_points = BigDecimal.ZERO;
-
         for(Student student : QRexam.db.getStudents()) {
             Map<String, Object> student_obj = new LinkedHashMap<>();
             student_obj.put("student", student);
@@ -48,8 +46,9 @@ public class FeedbackExporter {
             List<Object> sub_exercises_obj = new ArrayList<>();
             String current_exercise = null;
             Map<String, Object> exercise_obj = null;
-            BigDecimal sum_points = BigDecimal.ZERO;
-            BigDecimal max_points = BigDecimal.ZERO;
+            BigDecimal sum_points = BigDecimal.ZERO;    // total points of the full exercise (1a + 1b + ...)
+            BigDecimal max_points = BigDecimal.ZERO;    // max points of the full exercise (1a + 1b + ...)
+            BigDecimal exam_max_points = BigDecimal.ZERO; // max points of the exam (1 + 2 + ...)
             for(Exercise exercise : exercises) {
                 String label_number = exercise.getLabel().replaceAll("\\D", "");
                 if(!label_number.equals(current_exercise)) { // next exercise
@@ -59,9 +58,6 @@ public class FeedbackExporter {
                         exercise_obj.put("sum_points", sum_points);
                         exercise_obj.put("max_points", max_points);
                         exercises_obj.add(exercise_obj);
-                        if(!input.containsKey("exam_max_points")) {
-                            input.put("exam_max_points", exam_max_points);
-                        }
                     }
                     exercise_obj = new LinkedHashMap<>();
                     exercise_obj.put("label_number", label_number);
@@ -73,11 +69,11 @@ public class FeedbackExporter {
                 sub_exercise_obj.put("sub_exercise", exercise);
                 Answer answer = QRexam.db.getAnswer(student, exercise);
                 sub_exercise_obj.put("answer", answer);
-                sum_points = sum_points.add(answer.getPoints());
-                max_points = max_points.add(exercise.getPoints());
-                student_points = student_points.add(answer.getPoints());
+                sum_points = sum_points.add(answer.getPoints() == null ? BigDecimal.ZERO : answer.getPoints());
+                max_points = max_points.add(exercise.getPoints() == null ? BigDecimal.ZERO : exercise.getPoints());
+                student_points = student_points.add(answer.getPoints() == null ? BigDecimal.ZERO : answer.getPoints());
                 if(!input.containsKey("exam_max_points")) {
-                    exam_max_points = exam_max_points.add(exercise.getPoints());
+                    exam_max_points = exam_max_points.add(exercise.getPoints() == null ? BigDecimal.ZERO : exercise.getPoints());
                 }
                 sub_exercises_obj.add(sub_exercise_obj);
             }
@@ -89,10 +85,10 @@ public class FeedbackExporter {
             student_obj.put("exercises", exercises_obj);
             student_obj.put("points", student_points);
             students_obj.add(student_obj);
-        }
 
-        if(!input.containsKey("exam_max_points")) {
-            input.put("exam_max_points", exam_max_points);
+            if(!input.containsKey("exam_max_points")) {
+                input.put("exam_max_points", exam_max_points);
+            }
         }
 
         input.put("students", students_obj);

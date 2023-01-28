@@ -90,6 +90,35 @@ public class Controller {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
+        listView_exercises.setCellFactory(cell -> new ListCell<Exercise>() {
+            @Override
+            protected void updateItem(Exercise exercise, boolean empty) {
+                super.updateItem(exercise, empty);
+                if(empty || exercise == null) {
+                    setStyle(null);
+                    setText(null);
+                    return;
+                }
+
+                if(exercise.getPoints() != null) {  // max points already set
+                    setText(String.format("%s (%s P.)", exercise.getLabel(), exercise.getPoints()));
+                } else {
+                    setText(exercise.getLabel());   // max points not yet set
+                    setStyle("-fx-font-style: italic;");
+                }
+
+                long numGraded = list_students.stream().map(s -> {
+                    try {
+                        return QRexam.db.getAnswer(s, exercise);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }).filter(a -> a != null && a.getPoints() != null).count();
+                if(numGraded == list_students.size()) {     // all graded
+                    setStyle("-fx-font-weight: bold");
+                }
+            }
+        });
 
         if(controllerInstance == null) { controllerInstance = this; }
 
@@ -400,6 +429,7 @@ public class Controller {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         File selectedDirectory = directoryChooser.showDialog(fullPageBorderPane.getScene().getWindow());
         working_dir.setText(selectedDirectory.getAbsolutePath());
+        loadDir(actionEvent);
     }
 
     public void loadDir(ActionEvent actionEvent) {

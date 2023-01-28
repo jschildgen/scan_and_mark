@@ -109,6 +109,33 @@ public class DB {
         return students;
     }
 
+    public Student getStudent(int sid) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM students WHERE sid = ?");
+        stmt.setInt(1, sid);
+        ResultSet rs = stmt.executeQuery();
+        if(rs.next()) {
+            Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
+            student.setName1(rs.getString("name1"));
+            student.setName2(rs.getString("name2"));
+            return student;
+        }
+        return null;
+    }
+
+    public Exercise getExercise(int eid) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM exercises WHERE eid = ?");
+        stmt.setInt(1, eid);
+        ResultSet rs = stmt.executeQuery();
+        if(rs.next()) {
+            double[][] pos = { { rs.getDouble("pos1x"), rs.getDouble("pos1y") }, { rs.getDouble("pos2x"), rs.getDouble("pos2y") }};
+            Exercise exercise = new Exercise(rs.getString("label"), rs.getString("page"), pos);
+            exercise.setId(rs.getInt("eid"));
+            exercise.setPoints(rs.getBigDecimal("points"));
+            return exercise;
+        }
+        return null;
+    }
+
     public List<Exercise> getExercises() throws SQLException {
         List<Exercise> exercises = new ArrayList<>();
         Statement stmt = conn.createStatement();

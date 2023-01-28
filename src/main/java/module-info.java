@@ -8,6 +8,9 @@ module org.example {
     requires com.google.zxing.javase;
     requires java.sql;
     requires freemarker;
+    requires spark.core;
+    requires spark.template.freemarker;
+    requires javafx.swing;
     opens org.example to javafx.fxml;
     exports org.example;
     exports org.example.model;

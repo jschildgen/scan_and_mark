@@ -81,6 +81,7 @@ public class PDFTools {
     private static double getQRAngle(BufferedImage image) throws NotFoundException {
         final String charset = "UTF-8"; // or "ISO-8859-1"
         final Map hintMap = new HashMap();
+        hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
         BinaryBitmap binaryBitmap = new BinaryBitmap(new HybridBinarizer(
                 new BufferedImageLuminanceSource(image)));
 
@@ -88,6 +89,7 @@ public class PDFTools {
         Result[] results = multipleBarcodeReader.decodeMultiple(binaryBitmap, hintMap);
         //Result qrCodeResult = new MultiFormatReader().decode(binaryBitmap, hintMap);
         for(Result qrCodeResult : results) {
+            System.out.println("QR Code: "+qrCodeResult.getBarcodeFormat()+" / "+qrCodeResult.getText());
             if(qrCodeResult.getBarcodeFormat() != BarcodeFormat.QR_CODE) { continue; }
             ResultPoint[] p = qrCodeResult.getResultPoints();
 
@@ -97,6 +99,6 @@ public class PDFTools {
             return degree;
         }
         System.out.println("No QR Code found");
-        return 0.77;
+        return 0.0;
     }
 }

@@ -91,18 +91,20 @@
     <h2>Points: ${student.points} / ${exam_max_points}</h2>
 
     <#list student.exercises as exercise>
-    <h3>Exercise ${exercise.label_number}</h3>
-    <table>
-      <thead>
-        <tr><th style="width: 1cm;">#</th><th>Feedback</th><th style="width:2cm">Points</th><th style="width: 1cm">&nbsp;</th></tr>
-      </thead>
-      <tbody>
-      <#list exercise.sub_exercises as sub_exercise>
-        <tr><td>${sub_exercise.sub_exercise}</td><td>${sub_exercise.answer.getFeedback()!}</td><td>${sub_exercise.answer.getPoints()!}</td><td>/ ${sub_exercise.sub_exercise.getPoints()!}</td></tr>
-      </#list>
-        <tr style="font-weight:bold"><td></td><td style="text-align:right">Total:&nbsp;</td><td>${exercise.sum_points!}</td><td>/ ${exercise.max_points!}</td></tr>
-      </tbody>
-    </table>
+    <div style="page-break-inside: avoid;">
+        <h3>Exercise ${exercise.label_number}</h3>
+        <table>
+          <thead>
+            <tr><th style="width: 1cm;">#</th><th>Feedback</th><th style="width:2cm">Points</th><th style="width: 1cm">&nbsp;</th></tr>
+          </thead>
+          <tbody>
+          <#list exercise.sub_exercises as sub_exercise>
+            <tr><td>${sub_exercise.sub_exercise}</td><td>${sub_exercise.answer.getFeedback()!}</td><td>${sub_exercise.answer.getPoints()!}</td><td>/ ${sub_exercise.sub_exercise.getPoints()!}</td></tr>
+          </#list>
+            <tr style="font-weight:bold"><td></td><td style="text-align:right">Total:&nbsp;</td><td>${exercise.sum_points!}</td><td>/ ${exercise.max_points!}</td></tr>
+          </tbody>
+        </table>
+      </div>
     </#list>
   </div>
   <p>${student.student}</p>
