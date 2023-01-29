@@ -438,6 +438,11 @@ public class Controller {
             showError("Invalid directory");
             return;
         }
+        try {
+            QRexam.updatePathInConfigFile(newDir);
+        } catch (IOException e) {
+            System.out.println("[WARN] Could not store directory in config file!");
+        }
         QRexam.setBase_dir(newDir);
         initialize();
     }

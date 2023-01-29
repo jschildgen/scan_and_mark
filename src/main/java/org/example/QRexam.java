@@ -7,8 +7,10 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.sql.SQLException;
 
 /**
@@ -22,7 +24,8 @@ public class QRexam extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         applicationInstance = this;
-        setBase_dir(Paths.get("/home/johannes/qrtest"));
+
+        setBase_dir(getPathFromConfigFile());
 
         SwipeApp.startServer();
 
@@ -32,6 +35,21 @@ public class QRexam extends Application {
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
+    }
+
+    private static Path getPathFromConfigFile() throws IOException {
+        Path conf_file = Paths.get(System.getProperty("user.dir"), "dir.conf");
+        if(!Files.exists(conf_file)) {
+            System.out.println("Creating new config file: "+conf_file);
+            Files.createFile(conf_file);
+            Files.write(conf_file, System.getProperty("user.dir").getBytes(), StandardOpenOption.APPEND);
+        }
+        return Paths.get(new String(Files.readAllBytes(conf_file)));
+    }
+
+    protected static void updatePathInConfigFile(Path path) throws IOException {
+        Path conf_file = Paths.get(System.getProperty("user.dir"), "dir.conf");
+        Files.write(conf_file, path.toString().getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
     }
 
     public static Path getBase_dir() {
