@@ -1,10 +1,7 @@
 package org.example;
 
-import javafx.util.Pair;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
-import org.example.model.Answer;
-import org.example.model.Exercise;
 import org.example.model.Student;
 
 import java.io.FileWriter;
