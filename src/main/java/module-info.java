@@ -11,6 +11,7 @@ module org.example {
     requires spark.core;
     requires spark.template.freemarker;
     requires javafx.swing;
+    requires commons.csv;
     opens org.example to javafx.fxml;
     exports org.example;
     exports org.example.model;

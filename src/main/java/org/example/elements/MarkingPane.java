@@ -1,16 +1,13 @@
 package org.example.elements;
 
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import org.example.QRexam;
+import org.example.SAM;
 import org.example.model.Answer;
 import org.example.model.Exercise;
 import org.example.model.Student;
@@ -21,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class MarkingPane extends BorderPane {
     private Consumer<Answer> onAnswer;
@@ -80,7 +76,7 @@ public class MarkingPane extends BorderPane {
             }
 
             try {
-                QRexam.db.persist(answer);
+                SAM.db.persist(answer);
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }

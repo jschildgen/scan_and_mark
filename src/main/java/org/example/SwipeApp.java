@@ -3,9 +3,6 @@ package org.example;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateExceptionHandler;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelFormat;
-import javafx.scene.image.PixelReader;
-import javafx.scene.image.WritablePixelFormat;
 import org.example.model.Answer;
 import org.example.model.Exercise;
 import org.example.model.Student;
@@ -17,8 +14,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.*;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.nio.file.Paths;
 import java.util.*;
 import javafx.embed.swing.SwingFXUtils;
@@ -50,14 +45,14 @@ public class SwipeApp {
         Spark.get("/", (req, res) -> {
             Map<String, Object> attributes = new HashMap<>();
 
-            Exercise exercise = QRexam.db.getExercises().get(0);
+            Exercise exercise = SAM.db.getExercises().get(0);
 
             attributes.put("exercise", exercise);
 
             List<Object> students_obj = new ArrayList<>();
 
-            for(Student student : QRexam.db.getStudents()) {
-                Answer answer = QRexam.db.getAnswer(student, exercise);
+            for(Student student : SAM.db.getStudents()) {
+                Answer answer = SAM.db.getAnswer(student, exercise);
 
                 Map<String, Object> student_obj = new LinkedHashMap<>();
                 student_obj.put("student", student);
@@ -77,8 +72,8 @@ public class SwipeApp {
             Exercise exercise;
 
             try {
-                student = QRexam.db.getStudent(Integer.parseInt(req.params(":student")));
-                exercise = QRexam.db.getExercise(Integer.parseInt(req.params(":exercise")));
+                student = SAM.db.getStudent(Integer.parseInt(req.params(":student")));
+                exercise = SAM.db.getExercise(Integer.parseInt(req.params(":exercise")));
             } catch (NumberFormatException e) {
                 return null;
             }
@@ -86,7 +81,7 @@ public class SwipeApp {
                 return null;
             }
 
-            Answer answer = QRexam.db.getAnswer(student, exercise);
+            Answer answer = SAM.db.getAnswer(student, exercise);
             Image image = student.getAnswerImage(exercise);
 
             BufferedImage bImage = SwingFXUtils.fromFXImage(image, null);

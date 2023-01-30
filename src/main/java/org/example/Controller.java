@@ -1,6 +1,5 @@
 package org.example;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -14,18 +13,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import javafx.application.Application;
-import javafx.application.HostServices;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableMap;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -51,6 +43,8 @@ import org.example.model.Student;
 
 public class Controller {
     private static boolean FULL_WIDTH_EXERCISES = true;
+
+
 
     private static enum AnswerFilter { ALL, NOT_MARKTED, COMPLETED  };
     private AnswerFilter answerFilter = AnswerFilter.ALL;
@@ -109,7 +103,7 @@ public class Controller {
 
                 long numGraded = list_students.stream().map(s -> {
                     try {
-                        return QRexam.db.getAnswer(s, exercise);
+                        return SAM.db.getAnswer(s, exercise);
                     } catch (SQLException e) {
                         throw new RuntimeException(e);
                     }
@@ -122,11 +116,11 @@ public class Controller {
 
         if(controllerInstance == null) { controllerInstance = this; }
 
-        working_dir.setText(QRexam.getBase_dir().toString());
+        working_dir.setText(SAM.getBase_dir().toString());
 
         list_students.clear();
         try {
-            for(Student student : QRexam.db.getStudents()) {
+            for(Student student : SAM.db.getStudents()) {
                 list_students.add(student);
             }
         } catch (SQLException e) {
@@ -140,7 +134,7 @@ public class Controller {
 
         list_exercises.clear();
         try {
-            for(Exercise exercise : QRexam.db.getExercises()) {
+            for(Exercise exercise : SAM.db.getExercises()) {
                 list_exercises.add(exercise);
             }
         } catch (SQLException e) {
@@ -214,7 +208,7 @@ public class Controller {
         Map<String, BigDecimal> feedback_map;
         ObservableList<String> feedback_list;
         try {
-            feedback_map = QRexam.db.getFeedback(exercise);
+            feedback_map = SAM.db.getFeedback(exercise);
             feedback_list = FXCollections.observableArrayList();
             feedback_map.forEach((feedback, points) -> feedback_list.add(feedback));
         } catch (SQLException e) {
@@ -224,7 +218,7 @@ public class Controller {
 
         for(Student student : list_students) {
             try {
-                Answer answer = QRexam.db.getAnswer(student, exercise);
+                Answer answer = SAM.db.getAnswer(student, exercise);
                 if(answerFilter == AnswerFilter.NOT_MARKTED && answer.getPoints() != null) {
                     continue;
                 }
@@ -281,7 +275,7 @@ public class Controller {
         refreshTotalPoints();
 
         try {
-            QRexam.db.persist(exercise);
+            SAM.db.persist(exercise);
         } catch (SQLException e) {
             showError("DB Error: "+exercise);
         }
@@ -300,7 +294,7 @@ public class Controller {
 
     private void refreshProgress() {
         try {
-            progress.setProgress(1.0*QRexam.db.num_marked_answers()
+            progress.setProgress(1.0* SAM.db.num_marked_answers()
                     / (list_students.size() * list_exercises.size()));
         } catch (SQLException e) {
             showError("DB error: refreshProgress");
@@ -313,7 +307,7 @@ public class Controller {
         if(exercise == null) { return; }
 
         try {
-            int completed = QRexam.db.num_marked_answers(exercise);
+            int completed = SAM.db.num_marked_answers(exercise);
             filter_answers_completed.setText(filter_answers_completed.getText().replaceFirst("\\(\\d*\\)", "("+completed+")"));
             int not_marked = all-completed;
             filter_answers_notmarked.setText(filter_answers_notmarked.getText().replaceFirst("\\(\\d*\\)", "("+not_marked+")"));
@@ -337,7 +331,7 @@ public class Controller {
         }
 
         try {
-            QRexam.db.delete(exercise);
+            SAM.db.delete(exercise);
         } catch (SQLException e) {
             showError("DB Error: Deleting exercise "+exercise);
         }
@@ -392,7 +386,7 @@ public class Controller {
 
         Exercise e = new Exercise(input, page.getPageNo(), pos);
         try {
-            QRexam.db.persist(e);
+            SAM.db.persist(e);
         } catch (SQLException ex) {
             ex.printStackTrace();
             showError("DB Error: "+e);
@@ -417,7 +411,7 @@ public class Controller {
         }
 
         try {
-            QRexam.db.persist(student);
+            SAM.db.persist(student);
         } catch (SQLException e) {
             showError("DB Error: "+student);
         }
@@ -439,17 +433,17 @@ public class Controller {
             return;
         }
         try {
-            QRexam.updatePathInConfigFile(newDir);
+            SAM.updatePathInConfigFile(newDir);
         } catch (IOException e) {
             System.out.println("[WARN] Could not store directory in config file!");
         }
-        QRexam.setBase_dir(newDir);
+        SAM.setBase_dir(newDir);
         initialize();
     }
 
     public void importPDF(ActionEvent actionEvent) {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(QRexam.getBase_dir().toFile());
+        fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
         File selectedFile = fileChooser.showOpenDialog(fullPageBorderPane.getScene().getWindow());
         if(selectedFile == null) { return; }
         TextInputDialog textInputDialog = new TextInputDialog();
@@ -551,7 +545,7 @@ public class Controller {
         }
         exercise.setPos(pos);
         try {
-            QRexam.db.persist(exercise);
+            SAM.db.persist(exercise);
         } catch (SQLException e) {
             showError("Error resizing exercise: "+exercise);
         }
@@ -591,7 +585,7 @@ public class Controller {
                 if(student_matno_autocomplete.containsKey(student.getMatno())) {
                     student.fusion(student_matno_autocomplete.get(student.getMatno()));
                     try {
-                        QRexam.db.persist(student);
+                        SAM.db.persist(student);
                     } catch (SQLException e) {
                         showError("Error setting student name: "+student);
                     }
@@ -601,12 +595,37 @@ public class Controller {
         }
     }
 
+    public void exportStudents(ActionEvent actionEvent) {
+        FileChooser fileChooser = new FileChooser();
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
+        fileChooser.getExtensionFilters().add(extFilter);
+        fileChooser.setInitialFileName("grades.csv");
+        fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
+
+        File selectedFile = fileChooser.showSaveDialog(fullPageBorderPane.getScene().getWindow());
+        if(selectedFile == null) { return; }
+
+        URI uri = selectedFile.toURI();
+        if(!uri.toString().endsWith(".csv") && !uri.toString().endsWith(".txt")) {
+            try {
+                uri = new URI(uri.toString()+".csv");
+            } catch (URISyntaxException e) { }
+        }
+        CSVExporter csvExporter = new CSVExporter();
+        try {
+            csvExporter.exportCSV(Paths.get(uri));
+        } catch (Exception e) {
+            showError("CSV-Export Error: "+e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
     public void exportFeedback(ActionEvent actionEvent) {
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("HTML files (*.html)", "*.html");
         fileChooser.getExtensionFilters().add(extFilter);
         fileChooser.setInitialFileName("feedback.html");
-        fileChooser.setInitialDirectory(QRexam.getBase_dir().toFile());
+        fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
 
         File selectedFile = fileChooser.showSaveDialog(fullPageBorderPane.getScene().getWindow());
         if(selectedFile == null) { return; }
@@ -626,7 +645,7 @@ public class Controller {
             e.printStackTrace();
         }
 
-        QRexam.open_browser(uri.toString());
+        SAM.open_browser(uri.toString());
     }
 
     public void changeExerciseSettings(ActionEvent actionEvent) {

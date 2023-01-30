@@ -1,13 +1,14 @@
 package org.example.model;
 
 import javafx.scene.image.Image;
-import org.example.QRexam;
+import org.example.SAM;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Student implements Comparable<Student> {
     private Integer id;
@@ -31,7 +32,7 @@ public class Student implements Comparable<Student> {
         /* set student's pages */
         this.pages = new LinkedHashMap<>();
         try {
-            Files.newDirectoryStream(QRexam.getBase_dir().resolve(""+this.getId())).forEach((Path p) -> {
+            Files.newDirectoryStream(SAM.getBase_dir().resolve(""+this.getId())).forEach((Path p) -> {
                 Page page = new Page(p);
                 this.pages.put(page.getPageNo(), page);
             });
@@ -99,6 +100,19 @@ public class Student implements Comparable<Student> {
             return this.matno;
         }
         return String.format("%s (%s)", this.matno, this.getName());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Student student = (Student) o;
+        return id.equals(student.id) && Objects.equals(matno, student.matno) && Objects.equals(name1, student.name1) && Objects.equals(name2, student.name2);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, matno, name1, name2);
     }
 
     @Override

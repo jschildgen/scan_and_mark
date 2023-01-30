@@ -1,0 +1,80 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="SAM:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/SAM_jar</output-path>
+    <root id="archive" name="QRexam.jar">
+      <element id="module-output" name="QRexam" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/xerial/sqlite-jdbc/3.39.3.0/sqlite-jdbc-3.39.3.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/20-ea+7/javafx-swing-20-ea+7-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/zxing/javase/3.5.0/javase-3.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/19/javafx-graphics-19.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-base/19/javafx-base-19.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/commons-logging/commons-logging/1.2/commons-logging-1.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-swing/20-ea+7/javafx-swing-20-ea+7.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/google/zxing/core/3.5.0/core-3.5.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/pdfbox/fontbox/2.0.27/fontbox-2.0.27.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-io/9.4.48.v20220622/jetty-io-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/19/javafx-controls-19-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-http/9.4.48.v20220622/jetty-http-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/freemarker/freemarker/2.3.31/freemarker-2.3.31.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-fxml/19/javafx-fxml-19-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-fxml/19/javafx-fxml-19.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/websocket/websocket-common/9.4.48.v20220622/websocket-common-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-webapp/9.4.48.v20220622/jetty-webapp-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/websocket/websocket-api/9.4.48.v20220622/websocket-api-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-graphics/19/javafx-graphics-19-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-client/9.4.48.v20220622/jetty-client-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/websocket/websocket-servlet/9.4.48.v20220622/websocket-servlet-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-servlet/9.4.48.v20220622/jetty-servlet-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/pdfbox/pdfbox-debugger/2.0.27/pdfbox-debugger-2.0.27.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/websocket/websocket-client/9.4.48.v20220622/websocket-client-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/sparkjava/spark-template-freemarker/2.7.1/spark-template-freemarker-2.7.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/sparkjava/spark-core/2.9.4/spark-core-2.9.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-xml/9.4.48.v20220622/jetty-xml-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-security/9.4.48.v20220622/jetty-security-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-server/9.4.48.v20220622/jetty-server-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/beust/jcommander/1.82/jcommander-1.82.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/pdfbox/pdfbox/2.0.27/pdfbox-2.0.27.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-controls/19/javafx-controls-19.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/apache/pdfbox/pdfbox-tools/2.0.27/pdfbox-tools-2.0.27.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/jakarta/xml/bind/jakarta.xml.bind-api/2.3.2/jakarta.xml.bind-api-2.3.2.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/jakarta/activation/jakarta.activation-api/1.2.1/jakarta.activation-api-1.2.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util/9.4.48.v20220622/jetty-util-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/websocket/websocket-server/9.4.48.v20220622/websocket-server-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/com/github/jai-imageio/jai-imageio-core/1.4.0/jai-imageio-core-1.4.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/openjfx/javafx-base/19/javafx-base-19-linux.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/slf4j/slf4j-api/1.7.25/slf4j-api-1.7.25.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$MAVEN_REPOSITORY$/org/eclipse/jetty/jetty-util-ajax/9.4.48.v20220622/jetty-util-ajax-9.4.48.v20220622.jar" path-in-jar="/" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx-swt.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.base.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.controls.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.fxml.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.graphics.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.media.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.properties" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.swing.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/javafx.web.jar" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libavplugin-54.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libavplugin-56.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libavplugin-57.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libavplugin-ffmpeg-56.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libavplugin-ffmpeg-57.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libavplugin-ffmpeg-58.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libdecora_sse.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libfxplugins.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libglass.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libglassgtk2.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libglassgtk3.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libgstreamer-lite.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libjavafx_font.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libjavafx_font_freetype.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libjavafx_font_pango.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libjavafx_iio.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libjfxmedia.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libjfxwebkit.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libprism_common.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libprism_es2.so" />
+      <element id="file-copy" path="$USER_HOME$/code/javafx-sdk-19.0.2.1/lib/libprism_sw.so" />
+    </root>
+  </artifact>
+</component>

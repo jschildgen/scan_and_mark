@@ -4,8 +4,6 @@ import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
-import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import org.example.model.Answer;
 import org.example.model.Exercise;
 import org.example.model.Student;
@@ -17,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class FeedbackExporter {
 
@@ -35,9 +32,9 @@ public class FeedbackExporter {
 
         List<Object> students_obj = new ArrayList<>();
 
-        List<Exercise> exercises = QRexam.db.getExercises();
+        List<Exercise> exercises = SAM.db.getExercises();
 
-        for(Student student : QRexam.db.getStudents()) {
+        for(Student student : SAM.db.getStudents()) {
             Map<String, Object> student_obj = new LinkedHashMap<>();
             student_obj.put("student", student);
             BigDecimal student_points = BigDecimal.ZERO;
@@ -67,7 +64,7 @@ public class FeedbackExporter {
                 }
                 Map<String, Object> sub_exercise_obj = new LinkedHashMap<>();
                 sub_exercise_obj.put("sub_exercise", exercise);
-                Answer answer = QRexam.db.getAnswer(student, exercise);
+                Answer answer = SAM.db.getAnswer(student, exercise);
                 sub_exercise_obj.put("answer", answer);
                 sum_points = sum_points.add(answer.getPoints() == null ? BigDecimal.ZERO : answer.getPoints());
                 max_points = max_points.add(exercise.getPoints() == null ? BigDecimal.ZERO : exercise.getPoints());

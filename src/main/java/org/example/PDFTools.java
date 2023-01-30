@@ -5,7 +5,6 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.GenericMultipleBarcodeReader;
 import com.google.zxing.multi.MultipleBarcodeReader;
-import javafx.application.Platform;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -31,7 +30,7 @@ public class PDFTools {
         for (int page = 0; page < document.getNumberOfPages(); ++page) {
             exam_id = page / numpages + 1;
             page_id = page % numpages + 1;
-            Path folder = QRexam.getBase_dir().resolve(""+exam_id);
+            Path folder = SAM.getBase_dir().resolve(""+exam_id);
             if(!Files.exists(folder)) {
                 Files.createDirectory(folder);
             }
@@ -40,7 +39,7 @@ public class PDFTools {
                 /* store new student in DB */
                 Student student = new Student(exam_id);
                 try {
-                    QRexam.db.persist(student);
+                    SAM.db.persist(student);
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }

@@ -1,9 +1,6 @@
 package org.example.model;
 
-import org.example.QRexam;
-
 import java.math.BigDecimal;
-import java.sql.SQLException;
 
 public class Exercise implements Comparable<Exercise> {
     private Integer id;

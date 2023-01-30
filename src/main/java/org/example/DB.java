@@ -1,5 +1,6 @@
 package org.example;
 
+import javafx.util.Pair;
 import org.example.model.Answer;
 import org.example.model.Exercise;
 import org.example.model.Student;
@@ -240,4 +241,16 @@ public class DB {
     }
 
 
+    public Map<Student, BigDecimal> getStudentsWithPoints() throws SQLException {
+        Map<Student, BigDecimal> students = new LinkedHashMap<>();
+        Statement stmt = conn.createStatement();
+        ResultSet rs = stmt.executeQuery("SELECT S.sid, S.matno, S.name1, S.name2, sum(A.points) as points FROM students S JOIN answers A ON S.sid = A.student GROUP BY S.sid ORDER BY S.matno");
+        while(rs.next()) {
+            Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
+            student.setName1(rs.getString("name1"));
+            student.setName2(rs.getString("name2"));
+            students.put(student, rs.getBigDecimal("points"));
+        }
+        return students;
+    }
 }
