@@ -27,9 +27,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -344,9 +342,28 @@ public class Controller {
     }
 
 
-    public void fullPageImageDragStart(MouseEvent mouseEvent) {
-        image_click[0] = mouseEvent.getX();
-        image_click[1] = mouseEvent.getY();
+    public void fullPageImageDragStart(MouseEvent e) {
+        image_click[0]= e.getX();
+        image_click[1]= e.getY();
+        e.setDragDetect(true);
+    }
+
+    private Rectangle dragRect;
+
+    public void fullPageImageDragEvent(MouseEvent dragEvent) {
+        double[] point1 = {image_click[0], image_click[1]};
+        double[] point2 = {dragEvent.getX(), dragEvent.getY()};
+        final double[][] pos = {point1, point2};
+        if (FULL_WIDTH_EXERCISES) {
+            pos[0][0] = 0;
+            pos[1][0] = fullPageImageView.getImage().getWidth();
+        }
+        if (dragRect != null) {
+            fullPageImagePane.getChildren().remove(dragRect);
+        }
+        dragRect = new Rectangle(point1[0], point1[1], point2[0] - point1[0], point2[1] - point1[1]);
+        dragRect.setFill(Color.web("#8DD5F2", 0.2));
+        fullPageImagePane.getChildren().add(dragRect);
     }
 
     public void fullPageImageDragStop(MouseEvent mouseEvent) {
@@ -381,6 +398,9 @@ public class Controller {
         textInputDialog.setContentText("Exercise:");
         textInputDialog.showAndWait();
         String input = textInputDialog.getEditor().getText();
+        if (dragRect != null) {
+            fullPageImagePane.getChildren().remove(dragRect);
+        }
 
         Page page = (Page) listView_pages.getSelectionModel().getSelectedItem();
 

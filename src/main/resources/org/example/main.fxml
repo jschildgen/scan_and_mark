@@ -48,7 +48,7 @@
             <left>
                 <VBox>
                     <Label fx:id="studentName" style="-fx-font-weight: bold"/>
-                    <Pane fx:id="fullPageImagePane" onMousePressed="#fullPageImageDragStart" onMouseReleased="#fullPageImageDragStop">
+                    <Pane fx:id="fullPageImagePane" onMousePressed="#fullPageImageDragStart" onMouseDragged="#fullPageImageDragEvent" onMouseReleased="#fullPageImageDragStop">
                         <ImageView fx:id="fullPageImageView"></ImageView>
                     </Pane>
                 </VBox>
