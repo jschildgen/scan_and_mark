@@ -1,5 +1,6 @@
 package org.example;
 
+import freemarker.cache.ClassTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -21,7 +22,7 @@ public class FeedbackExporter {
     public void exportFeedback(Path path) throws IOException, TemplateException, URISyntaxException, SQLException {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
 
-        cfg.setDirectoryForTemplateLoading(new File(Paths.get(this.getClass().getResource("feedback.ftl").toURI()).getParent().toUri()));
+        cfg.setClassForTemplateLoading(this.getClass(), "/org/example");
 
         cfg.setDefaultEncoding("UTF-8");
         cfg.setLocale(Locale.US);

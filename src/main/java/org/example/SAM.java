@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -31,6 +32,7 @@ public class SAM extends Application {
 
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
         stage.setTitle("SAM - Scan and Mark");
+        stage.getIcons().add(new Image(getClass().getResourceAsStream("sam80x80.png")));
         Scene scene = new Scene(root, 1400, 900);
         stage.setScene(scene);
         stage.setMaximized(true);
