@@ -49,8 +49,9 @@ public class Page implements Comparable<Page> {
     @Override
     public int compareTo(Page that) {
         try {
-            int thisId = Integer.parseInt(that.path.getFileName().toString());
-            int thatId = Integer.parseInt(that.path.getFileName().toString());
+            int thisId = Integer.parseInt(this.path.getFileName().toString().replaceAll("\\D", ""));
+            int thatId = Integer.parseInt(that.path.getFileName().toString().replaceAll("\\D", ""));
+            System.out.printf("%d - %d\n",thisId,thatId);
             return thisId - thatId;
         } catch (Exception e) {
             return this.path.getFileName().toString().compareTo(that.path.getFileName().toString());
