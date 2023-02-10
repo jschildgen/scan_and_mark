@@ -18,6 +18,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -31,6 +33,8 @@ import javafx.scene.input.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.*;
 import org.example.elements.MarkingPane;
@@ -495,13 +499,19 @@ public class Controller {
     }
 
     private void refreshRectangles() {
-        fullPageImagePane.getChildren().removeIf(n -> n instanceof Rectangle);
+        fullPageImagePane.getChildren().removeIf(n -> n instanceof Rectangle || n instanceof Text);
 
         Page page = (Page) listView_pages.getSelectionModel().getSelectedItem();
         if(page != null) {
             list_exercises.stream()
                     .filter(e -> e.getPageNo().equals(page.getPageNo()))
-                    .forEach(e -> fullPageImagePane.getChildren().add(getRectangle(e)));
+                    .forEach(exercise -> {
+                        fullPageImagePane.getChildren().add(getRectangle(exercise));
+                        Text pointsText = getPointsText(exercise);
+                        if(pointsText != null) {
+                            fullPageImagePane.getChildren().add(pointsText);
+                        }
+                    });
         }
     }
 
@@ -518,6 +528,30 @@ public class Controller {
             rectangle.setFill(Color.web("#8DD5F2", 0.2));
         }
         return rectangle;
+    }
+
+    public Text getPointsText(Exercise exercise) {
+        // point2 is the rectangle point at the bottom right
+        double[] point2 = { exercise.getPos()[1][0], exercise.getPos()[1][1] };
+        point2 = imagePosToWindowPos(point2);
+
+        Student student = (Student) listView_students.getSelectionModel().getSelectedItem();
+        if(student == null) { return null; }
+
+        Answer answer;
+        try {
+            answer = SAM.db.getAnswer(student, exercise);
+        } catch (SQLException e) {
+            return null;
+        }
+
+        BigDecimal points = answer.getPoints();
+        if(points == null) { return null; }
+
+        Text text = new Text(point2[0]-20, point2[1]-5, ""+points);
+        text.setFill(Color.RED);
+        text.setFont(Font.font(null, FontWeight.BOLD, 14));
+        return text;
     }
 
     private double[] windowPosToImagePos(double[] pos) {
