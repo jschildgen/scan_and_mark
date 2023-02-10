@@ -217,8 +217,6 @@ public class Controller {
 
         int num_students = 0;
         for(Student student : list_students) {
-            num_students++;
-            if(limit_show_answers.isSelected() && num_students > 10) { break; }
             try {
                 Answer answer = SAM.db.getAnswer(student, exercise);
                 if(answerFilter == AnswerFilter.NOT_MARKTED && answer.getPoints() != null) {
@@ -227,6 +225,9 @@ public class Controller {
                 if(answerFilter == AnswerFilter.COMPLETED && answer.getPoints() == null) {
                     continue;
                 }
+
+                num_students++;
+                if(limit_show_answers.isSelected() && num_students > 10) { break; }
 
                 MarkingPane marking_pane = new MarkingPane(answer, feedback_map, feedback_list);
                 marking_pane.setOnAnswer(student_answer -> refreshProgress());
