@@ -69,6 +69,7 @@ public class Controller {
     @FXML RadioButton filter_answers_all;
     @FXML RadioButton filter_answers_notmarked;
     @FXML RadioButton filter_answers_completed;
+    @FXML CheckBox limit_show_answers;
 
     ObservableList<Student> list_students = FXCollections.observableArrayList();
     ObservableList<Page> list_pages = FXCollections.observableArrayList();
@@ -214,7 +215,10 @@ public class Controller {
             return;
         }
 
+        int num_students = 0;
         for(Student student : list_students) {
+            num_students++;
+            if(limit_show_answers.isSelected() && num_students > 10) { break; }
             try {
                 Answer answer = SAM.db.getAnswer(student, exercise);
                 if(answerFilter == AnswerFilter.NOT_MARKTED && answer.getPoints() != null) {
