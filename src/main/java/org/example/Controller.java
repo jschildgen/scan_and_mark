@@ -55,6 +55,7 @@ public class Controller {
 
     public ToggleGroup filter_answers;
     @FXML ProgressBar progress;
+    private static Tooltip progress_tooltip = null;
     @FXML VBox answers_list;
 
     @FXML TextField working_dir;
@@ -300,9 +301,15 @@ public class Controller {
     }
 
     private void refreshProgress() {
+        if(progress_tooltip == null) {
+            progress_tooltip = new Tooltip();
+            Tooltip.install(Controller.controllerInstance.progress, progress_tooltip);
+        }
+
         try {
             progress.setProgress(1.0* SAM.db.num_marked_answers()
                     / (list_students.size() * list_exercises.size()));
+            progress_tooltip.setText(String.format("%.1f%%", progress.getProgress()*100));
         } catch (SQLException e) {
             showError("DB error: refreshProgress");
         }
