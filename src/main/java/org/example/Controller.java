@@ -18,8 +18,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -45,8 +43,7 @@ import org.example.model.Student;
 
 public class Controller {
     private static boolean FULL_WIDTH_EXERCISES = true;
-
-
+    public SplitPane examsSplitPane;
 
     private static enum AnswerFilter { ALL, NOT_MARKTED, COMPLETED  };
     private AnswerFilter answerFilter = AnswerFilter.ALL;
@@ -146,6 +143,11 @@ public class Controller {
         }
         FXCollections.sort(list_exercises, (a,b)->a.compareTo(b));
 
+        fullPageImagePane.widthProperty().addListener((obs,oldVal, newVal) -> {
+            fullPageImageView.setFitWidth(newVal.doubleValue());
+            refreshRectangles();
+        });
+
         refreshTotalPoints();
         refreshProgress();
     }
@@ -179,11 +181,13 @@ public class Controller {
         /* show page image */
         try {
             fullPageImageView.setImage(page.getImage());
-            fullPageImageView.setFitHeight(fullPageBorderPane.getHeight()-50);
+            //fullPageImageView.setFitHeight(fullPageBorderPane.getHeight()-50);
             fullPageImageView.setPreserveRatio(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        fullPageImageView.setFitWidth(fullPageImagePane.getWidth());
 
         /* show highlighted exercise boxes */
         refreshRectangles();
@@ -562,13 +566,13 @@ public class Controller {
     }
 
     private double[] windowPosToImagePos(double[] pos) {
-        double factor = fullPageImageView.getImage().getHeight() / fullPageImageView.getFitHeight();
+        double factor = fullPageImageView.getImage().getWidth() / fullPageImageView.getFitWidth();
         double[] imagePos = { pos[0] * factor, pos[1] * factor };
         return imagePos;
     }
 
     private double[] imagePosToWindowPos(double[] pos) {
-        double factor = fullPageImageView.getFitHeight() / fullPageImageView.getImage().getHeight();
+        double factor = fullPageImageView.getFitWidth() / fullPageImageView.getImage().getWidth();
         double[] windowPos = { pos[0] * factor, pos[1] * factor };
         return windowPos;
     }

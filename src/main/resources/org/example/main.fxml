@@ -44,23 +44,21 @@
         </HBox>
     </left>
     <center>
-        <BorderPane>
-            <left>
+        <SplitPane fx:id="examsSplitPane">
+            <items>
                 <VBox>
                     <Label fx:id="studentName" style="-fx-font-weight: bold"/>
                     <Pane fx:id="fullPageImagePane" onMousePressed="#fullPageImageDragStart" onMouseDragged="#fullPageImageDragEvent" onMouseReleased="#fullPageImageDragStop">
                         <ImageView fx:id="fullPageImageView"></ImageView>
                     </Pane>
                 </VBox>
-            </left>
-            <center>
                 <BorderPane>
                     <top>
                         <BorderPane>
                             <left>
                                 <HBox alignment="CENTER_LEFT">
                                     <Label text=" Exercise: "/>
-                                    <TextField prefWidth="50" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
+                                    <TextField prefWidth="35" fx:id="exerciseLabel" onKeyReleased="#changeExercise"/>
                                     <Button text="Delete" onAction="#deleteExercise"/>
                                     <Button text="↥+" onAction="#resizeExercise"/>
                                     <Button text="↥-" onAction="#resizeExercise"/>
@@ -87,7 +85,7 @@
                                             <fx:reference source="filter_answers"/>
                                         </toggleGroup>
                                     </RadioButton>
-                                    <RadioButton text="Completed ()" onAction="#filterAnswers" fx:id="filter_answers_completed">
+                                    <RadioButton text="Marked ()" onAction="#filterAnswers" fx:id="filter_answers_completed">
                                         <toggleGroup>
                                             <fx:reference source="filter_answers"/>
                                         </toggleGroup>
@@ -103,8 +101,8 @@
                         </ScrollPane>
                     </center>
                 </BorderPane>
-            </center>
-        </BorderPane>
+            </items>
+        </SplitPane>
     </center>
     <right>
         <VBox prefWidth="100">
