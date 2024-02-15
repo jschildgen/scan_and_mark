@@ -448,6 +448,7 @@ public class Controller {
 
         if(student_matno_autocomplete.containsKey(student.getMatno())) {
             student.fusion(student_matno_autocomplete.get(student.getMatno()));
+            TextToSpeech.speak(student.getName());
         }
 
         try {
@@ -626,7 +627,7 @@ public class Controller {
         Dialog<String> dialog = new Dialog<>();
         dialog.setTitle("Import Students");
         BorderPane borderPane = new BorderPane();
-        borderPane.setTop(new Label("Copy/Paste tab-separated list of students' matno and name (e.g. from Excel), one student per line."));
+        borderPane.setTop(new Label("Copy/Paste tab-separated list of students' matno and name (e.g. from Excel), one student per line. Optionally name separated in two columns."));
         TextArea students_textarea = new TextArea();
         borderPane.setCenter(students_textarea);
 

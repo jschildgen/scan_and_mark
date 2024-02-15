@@ -22,7 +22,77 @@ public class DB {
         this.conn = DriverManager.getConnection("jdbc:sqlite:"+dbpath);
         if(!table_exists("students") || !table_exists("exercises") || !table_exists("answers")) {
             createDB();
+        };
+        if(db_version_older_than(SAM.SAM_VERSION)) {
+            updateDB();
         }
+    }
+
+    private void updateDB() {
+        System.out.println("Updating database");
+        try {
+            Statement stmt = conn.createStatement();
+            if (db_version_older_than("0.1.1")) {
+                System.out.println("Updating to 0.1.1: Create Table sam, add pdfpage column to students table");
+                stmt.executeUpdate("CREATE TABLE sam(k VARCHAR(255), v VARCHAR(255))");
+                stmt.executeUpdate("INSERT INTO sam(k,v) VALUES('db_version', '0.1.1')");
+                stmt.executeUpdate("ALTER TABLE students ADD COLUMN pdfpage int");
+            }
+            set_sam_config("db_version", SAM.SAM_VERSION);
+            System.out.println("Updated to " + SAM.SAM_VERSION);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
+
+    private String get_sam_config(String k) throws SQLException {
+        if(!table_exists("sam")) {
+            return null;
+        }
+        PreparedStatement pstmt = conn.prepareStatement("SELECT v FROM sam WHERE k = ?");
+        pstmt.setString(1, k);
+        ResultSet rs = pstmt.executeQuery();
+        if(rs.next()) {
+            return rs.getString(1);
+        }
+        return null;
+    }
+
+    private void set_sam_config(String k, String v) throws SQLException {
+        PreparedStatement pstmt;
+        if(get_sam_config(k) == null) {
+            pstmt = conn.prepareStatement("INSERT INTO sam(v,k) VALUES(?,?)");
+        } else {
+            pstmt = conn.prepareStatement("UPDATE sam SET v = ? WHERE k = ?");
+        }
+        pstmt.setString(1, v);
+        pstmt.setString(2, k);
+        pstmt.executeUpdate();
+    }
+
+    private boolean db_version_older_than(String version) throws SQLException {
+        String db_version = get_sam_config("db_version");
+        if(db_version == null) {
+            return true;
+        }
+        String[] db_version_parts = db_version.split("\\.");
+        String[] sam_version_parts = version.split("\\.");
+
+        int length = Math.max(db_version_parts.length, sam_version_parts.length);
+
+        for (int i = 0; i < length; i++) {
+            int dbv = (i < db_version_parts.length) ? Integer.parseInt(db_version_parts[i]) : 0;
+            int samv = (i < sam_version_parts.length) ? Integer.parseInt(sam_version_parts[i]) : 0;
+
+            if (dbv < samv) {
+                return true;
+            } else if (dbv > samv) {
+                return false;
+            }
+        }
+        return false;
     }
 
 
@@ -40,15 +110,17 @@ public class DB {
         }
 
         PreparedStatement pstmt = conn.prepareStatement(
-                "INSERT INTO students (sid, matno, name1, name2) VALUES (?, ?, ?, ?)" +
-                        " ON CONFLICT(sid) DO UPDATE SET matno = ?, name1 = ?, name2 = ?");
+                "INSERT INTO students (sid, matno, name1, name2, pdfpage) VALUES (?, ?, ?, ?, ?)" +
+                        " ON CONFLICT(sid) DO UPDATE SET matno = ?, name1 = ?, name2 = ?, pdfpage = ?");
         pstmt.setInt(1, student.getId());
         pstmt.setString(2, student.getMatno());
         pstmt.setString(3, student.getName1());
         pstmt.setString(4, student.getName2());
-        pstmt.setString(2+3, student.getMatno());
-        pstmt.setString(3+3, student.getName1());
-        pstmt.setString(4+3, student.getName2());
+        pstmt.setInt(5, student.getPdfpage());
+        pstmt.setString(2+4, student.getMatno());
+        pstmt.setString(3+4, student.getName1());
+        pstmt.setString(4+4, student.getName2());
+        pstmt.setInt(5+4, student.getPdfpage());
         pstmt.executeUpdate();
     }
 
@@ -105,6 +177,7 @@ public class DB {
             Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
             student.setName1(rs.getString("name1"));
             student.setName2(rs.getString("name2"));
+            student.setPdfpage(rs.getInt("pdfpage"));
             students.add(student);
         }
         return students;
@@ -118,6 +191,7 @@ public class DB {
             Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
             student.setName1(rs.getString("name1"));
             student.setName2(rs.getString("name2"));
+            student.setPdfpage(rs.getInt("pdfpage"));
             return student;
         }
         return null;
@@ -172,12 +246,18 @@ public class DB {
 
     public void createDB() throws SQLException {
         Statement stmt = conn.createStatement();
+        stmt.executeUpdate("DROP TABLE IF EXISTS sam");
         stmt.executeUpdate("DROP TABLE IF EXISTS answers");
         stmt.executeUpdate("DROP TABLE IF EXISTS exercises");
         stmt.executeUpdate("DROP TABLE IF EXISTS students");
-        stmt.executeUpdate("CREATE TABLE students (sid int primary key, matno varchar(255), name1 varchar(255), name2 varchar(255))");
+        stmt.executeUpdate("CREATE TABLE sam(k VARCHAR(255), v VARCHAR(255))");
+        stmt.executeUpdate("CREATE TABLE students (sid int primary key, matno varchar(255), name1 varchar(255), name2 varchar(255), pdfpage int)");
         stmt.executeUpdate("CREATE TABLE exercises (eid int primary key, label varchar(255), page varchar(255), points decimal(18,2), pos1x double, pos1y double, pos2x double, pos2y double)");
         stmt.executeUpdate("CREATE TABLE answers (student int references students(sid), exercise int references exercises(eid), points decimal(18,2), feedback varchar(2000000), PRIMARY KEY(student, exercise))");
+        PreparedStatement pstmt_sam_insert = conn.prepareStatement("INSERT INTO sam(k,v) VALUES(?,?)");
+        pstmt_sam_insert.setString(1, "db_version");
+        pstmt_sam_insert.setString(2, SAM.SAM_VERSION);
+        pstmt_sam_insert.executeUpdate();
     }
 
     public void delete(Exercise exercise) throws SQLException {
@@ -244,11 +324,12 @@ public class DB {
     public Map<Student, BigDecimal> getStudentsWithPoints() throws SQLException {
         Map<Student, BigDecimal> students = new LinkedHashMap<>();
         Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery("SELECT S.sid, S.matno, S.name1, S.name2, sum(A.points) as points FROM students S JOIN answers A ON S.sid = A.student GROUP BY S.sid ORDER BY S.matno");
+        ResultSet rs = stmt.executeQuery("SELECT S.sid, S.matno, S.name1, S.name2, S.pdfpage, sum(A.points) as points FROM students S JOIN answers A ON S.sid = A.student GROUP BY S.sid ORDER BY S.matno");
         while(rs.next()) {
             Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
             student.setName1(rs.getString("name1"));
             student.setName2(rs.getString("name2"));
+            student.setPdfpage(rs.getInt("pdfpage"));
             students.put(student, rs.getBigDecimal("points"));
         }
         return students;

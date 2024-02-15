@@ -18,6 +18,7 @@ import java.sql.SQLException;
  * JavaFX App
  */
 public class SAM extends Application {
+    public static final String SAM_VERSION = "0.1.1";
     private static Path base_dir;
     public static DB db;
     private static Application applicationInstance;
@@ -26,9 +27,11 @@ public class SAM extends Application {
     public void start(Stage stage) throws IOException {
         applicationInstance = this;
 
-        setBase_dir(getPathFromConfigFile());
-
-        //SwipeApp.startServer();
+        try {
+            setBase_dir(getPathFromConfigFile());
+        } catch (Exception e) {
+            setBase_dir(Paths.get(System.getProperty("user.dir")));
+        }
 
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
         stage.setTitle("SAM - Scan and Mark");
@@ -73,7 +76,6 @@ public class SAM extends Application {
 
     @Override
     public void stop() throws Exception {
-        SwipeApp.stopServer();
         super.stop();
     }
 

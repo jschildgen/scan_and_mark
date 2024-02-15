@@ -75,6 +75,12 @@
               vertical-align: top;
               text-align: left;
             }
+
+            @media print {
+                .hide-on-print {
+                    display: none;
+                }
+            }
   </style>
 </head>
 <body class="page">
@@ -85,8 +91,16 @@
     &nbsp;
 </footer>
 
+<div class="hide-on-print">
+    <h1>Exam Feedback</h1>
+    <h3>${exam_path}</h3>
+    <button onclick="by_points(prompt('Hide all with >= x points. x = '))">Hide all with >= x points</button>
+    &nbsp;
+    <button onclick="by_name(prompt('Find student by name:'))">Find student by name</button>
+</div>
+
 <#list students as student>
-  <div style="page-break-before:always;">
+  <div style="page-break-before:always;" class="student">
     <h1>${student.student}</h1>
     <h2>Points: ${student.points} / ${exam_max_points}</h2>
 
@@ -107,7 +121,50 @@
       </div>
     </#list>
   </div>
-  <p>${student.student}</p>
+  <p>${student.student}, PDFPage=${student.student.pdfpage!}</p>
   </#list>
 </body>
+<script type="text/javascript">
+function by_points(points) {
+    if (isNaN(points)) { return; }
+    found = 0;
+    var points_limit = parseInt(points);
+    var divs = document.querySelectorAll('div.student');
+    divs.forEach(function(div) {
+        var pointsElement = div.querySelector('h2');
+        var s_points = parseInt(pointsElement.textContent.match(/\d+/)[0]);
+        if (s_points >= points_limit) {
+            div.style.display = 'none';
+        } else {
+            found++;
+            div.style.display = 'block';
+        }
+        var nextElement = div.nextElementSibling;
+        if (nextElement) {
+            nextElement.style.display = div.style.display;
+        }
+    });
+    alert('Students found with points >=' + points + ': ' + found);
+}
+
+function by_name(name) {
+    if (name === null || name === '') { return; }
+    found = 0;
+    var divs = document.querySelectorAll('div.student');
+    divs.forEach(function(div) {
+        var nameElement = div.querySelector('h1');
+        if (nameElement.textContent.includes(name)) {
+            found++;
+            div.style.display = 'block';
+        } else {
+            div.style.display = 'none';
+        }
+        var nextElement = div.nextElementSibling;
+        if (nextElement) {
+            nextElement.style.display = div.style.display;
+        }
+    });
+    alert('Students found with name ' + name+ ': ' + found);
+}
+</script>
 </html>

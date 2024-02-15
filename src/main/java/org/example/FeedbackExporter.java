@@ -1,6 +1,7 @@
 package org.example;
 
 import freemarker.cache.ClassTemplateLoader;
+import freemarker.cache.FileTemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -22,14 +23,26 @@ public class FeedbackExporter {
     public void exportFeedback(Path path) throws IOException, TemplateException, URISyntaxException, SQLException {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
 
-        cfg.setClassForTemplateLoading(this.getClass(), "/org/example");
-
-        cfg.setDefaultEncoding("UTF-8");
-        cfg.setLocale(Locale.US);
-        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-        Template template = cfg.getTemplate("feedback.ftl");
+        Template template;
+        try {
+            // For JAR execution
+            cfg.setClassForTemplateLoading(this.getClass(), "/org/example");
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setLocale(Locale.US);
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            template = cfg.getTemplate("feedback.ftl");
+        } catch (Exception e) {
+            // For IDE execution
+            cfg.setTemplateLoader(new FileTemplateLoader(new File("src/main/java/org/example/")));
+            cfg.setDefaultEncoding("UTF-8");
+            cfg.setLocale(Locale.US);
+            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+            template = cfg.getTemplate("feedback.ftl");
+        }
 
         Map<String, Object> input = new HashMap<String, Object>();
+
+        input.put("exam_path", SAM.getBase_dir().toString());
 
         List<Object> students_obj = new ArrayList<>();
 
