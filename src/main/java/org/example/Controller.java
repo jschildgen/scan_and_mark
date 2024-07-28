@@ -448,7 +448,8 @@ public class Controller {
 
         if(student_matno_autocomplete.containsKey(student.getMatno())) {
             student.fusion(student_matno_autocomplete.get(student.getMatno()));
-            TextToSpeech.speak(student.getName());
+
+            new Thread(() -> TextToSpeech.speak(student.getName())).start();
         }
 
         try {

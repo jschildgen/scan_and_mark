@@ -15,6 +15,17 @@ public class TextToSpeech {
     }
 
     public static void speak(String voiceMessage) {
-        voice.speak(voiceMessage);
+        speak(voiceMessage, true);
+    }
+
+    public static void speak(String voiceMessage, boolean removeUmlauts) {
+        voice.speak(removeUmlauts ? removeUmlauts(voiceMessage) : voiceMessage);
+    }
+
+    private static String removeUmlauts(String s) {
+        return s.toLowerCase().replaceAll("ä","ae")
+                .replaceAll("ö", "oe")
+                .replaceAll("ü", "ue")
+                .replaceAll("ß", "ss");
     }
 }
