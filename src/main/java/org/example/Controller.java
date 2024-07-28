@@ -9,9 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -225,7 +223,12 @@ public class Controller {
         }
 
         int num_students = 0;
-        for(Student student : list_students) {
+
+        long random_seed = exercise.getId();
+        List<Student> list_students_random = new ArrayList<>(list_students);
+        Collections.shuffle(list_students_random, new Random(random_seed));
+
+        for(Student student : list_students_random) {
             try {
                 Answer answer = SAM.db.getAnswer(student, exercise);
                 if(answerFilter == AnswerFilter.NOT_MARKTED && answer.getPoints() != null) {
