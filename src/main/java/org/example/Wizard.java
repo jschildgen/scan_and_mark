@@ -1,5 +1,9 @@
 package org.example;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.IntegerBinding;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
@@ -12,11 +16,13 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.util.List;
 
 public class Wizard {
 
     Stage stage = new Stage();
     GridPane grid = new GridPane();
+    ObservableList<String> pdfNamesList = FXCollections.observableArrayList();
 
     public void showWizard() {
         stage.setTitle("Create new Project");
@@ -68,7 +74,9 @@ public class Wizard {
         createBtn.setText("Create");
         createBtn.isDefaultButton();
         createBtn.setOnAction(event -> {
-            // Action Handler for data, ...
+            String projectName = textName.getText();
+            String pageCount = textPagecnt.getText();
+            handleInputData(projectName, pageCount);
             stage.close();
         });
 
@@ -77,11 +85,20 @@ public class Wizard {
         cancelBtn.isCancelButton();
         cancelBtn.setOnAction(event -> stage.close());
 
+        ListView<String> pdfListView = new ListView<>(pdfNamesList);
+        pdfListView.setFixedCellSize(24);
+        int maxVisibleRows = 10;
+        IntegerBinding visibleRowCount = Bindings.createIntegerBinding(
+                () -> Math.min(pdfNamesList.size(), maxVisibleRows),
+                pdfNamesList
+        );
+        pdfListView.prefHeightProperty().bind(visibleRowCount.multiply(pdfListView.getFixedCellSize()));
 
         grid.add(labelName, 0, 0);
         grid.add(textName, 1, 0);
         grid.add(labelImportPdf, 0, 1);
         grid.add(importBtn, 1, 1);
+        grid.add(pdfListView, 1, 2);
         grid.add(labelMatrikel, 0, 3);
         grid.add(matrikelBtn, 1, 3);
         grid.add(labelPageCount, 0, 5);
@@ -100,12 +117,12 @@ public class Wizard {
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("PDF files (*.pdf)", "*.pdf");
         fileChooser.getExtensionFilters().add(extFilter);
 
-        File file = fileChooser.showOpenDialog(stage);
+        List<File> files = fileChooser.showOpenMultipleDialog(stage);
 
-        Label pdfName;
-        if (file != null) {
-            pdfName = new Label(file.getAbsolutePath());
-            grid.add(pdfName, 1,2);
+        if (files != null) {
+            for (File file : files) {
+                pdfNamesList.add(file.getName());
+            }
         }
     }
 
@@ -116,9 +133,26 @@ public class Wizard {
 
         Label pdfName;
         if (file != null) {
-            pdfName = new Label(file.getAbsolutePath());
+            pdfName = new Label(file.getName());
             grid.add(pdfName, 1,4);
         }
     }
 
+    public void handleInputData(String projectName, String pageCount){
+        //todo: split pdf according to set page count -> start Thread
+        List<String> importedPdfNames = pdfNamesList;
+        StringBuilder message = new StringBuilder();
+        message.append("Projektname: ").append(projectName).append("\n");
+        message.append("Seitenanzahl: ").append(pageCount).append("\n");
+        message.append("Importierte PDFs:\n");
+        for (String pdfName : importedPdfNames) {
+            message.append("- ").append(pdfName).append("\n");
+        }
+
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Eingabedaten");
+        alert.setHeaderText("Eingaben des Projekts:");
+        alert.setContentText(message.toString());
+        alert.showAndWait();
+    }
 }
