@@ -1,12 +1,19 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -33,10 +40,25 @@ public class SAM extends Application {
             setBase_dir(Paths.get(System.getProperty("user.dir")));
         }
 
+        MenuBar menu = new MenuBar();
+        Menu fileMenu = new Menu("File");
+        menu.getMenus().addAll(fileMenu);
+        MenuItem newProject = new MenuItem("New Project");
+        fileMenu.getItems().add(newProject);
+
+        Wizard wizard = new Wizard();
+        newProject.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                wizard.showWizard();
+            }
+        });
+
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
         stage.setTitle("SAM - Scan and Mark");
         stage.getIcons().add(new Image(getClass().getResourceAsStream("sam80x80.png")));
-        Scene scene = new Scene(root, 1400, 900);
+        VBox vBox = new VBox(menu, root);
+        Scene scene = new Scene(vBox, 1400, 900);
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();
