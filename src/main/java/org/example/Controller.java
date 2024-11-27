@@ -740,4 +740,5 @@ public class Controller {
     public static void setProgress(double progress) {
         Controller.controllerInstance.progress.setProgress(progress);
     }
+
 }

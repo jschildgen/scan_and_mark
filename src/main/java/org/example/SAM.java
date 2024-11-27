@@ -1,6 +1,7 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
@@ -45,12 +46,16 @@ public class SAM extends Application {
         menu.getMenus().addAll(fileMenu);
         MenuItem newProject = new MenuItem("New Project");
         fileMenu.getItems().add(newProject);
+        MenuItem clear = new MenuItem("New Window");
+        fileMenu.getItems().add(clear);
 
         Wizard wizard = new Wizard();
-        newProject.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                wizard.showWizard();
+        newProject.setOnAction(event -> wizard.showWizard());
+        clear.setOnAction(event -> {
+            try {
+                clearPathConfigFile();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         });
 
@@ -77,6 +82,25 @@ public class SAM extends Application {
     protected static void updatePathInConfigFile(Path path) throws IOException {
         Path conf_file = Paths.get(System.getProperty("user.dir"), "dir.conf");
         Files.write(conf_file, path.toString().getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
+    }
+
+    protected static void clearPathConfigFile() throws IOException {
+        //Todo: db clearen
+        /*Path dbPath = SAM.getBase_dir().resolve("db.sqlite3");
+        try {
+            if (Files.exists(dbPath)) {
+                Files.delete(dbPath);
+                System.out.println("Datenbank gelöscht: " + dbPath.toString());
+            } else {
+                System.out.println("Datenbank existiert nicht: " + dbPath.toString());
+            }
+        } catch (IOException e) {
+            System.err.println("Fehler beim Löschen der Datenbank: " + e.getMessage());
+            e.printStackTrace();
+        }
+        Path conf_file = Paths.get(System.getProperty("user.dir"), "dir.conf");
+        Files.write(conf_file, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
+        */
     }
 
     public static Path getBase_dir() {

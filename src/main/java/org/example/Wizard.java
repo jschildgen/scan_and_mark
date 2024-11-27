@@ -6,7 +6,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.ColumnConstraints;
@@ -14,19 +16,33 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.application.Platform;
+import javafx.stage.Window;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import org.example.model.Student;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.NoSuchFileException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Wizard {
-
     Stage stage = new Stage();
     GridPane grid = new GridPane();
-    ObservableList<String> pdfNamesList = FXCollections.observableArrayList();
+    Controller con = new Controller();
+
+    ObservableList<File> pdfNamesList = FXCollections.observableArrayList();
+    File studentList = null;
 
     public void showWizard() {
+        if (stage.isShowing()) {
+            stage.close();
+        }
         stage.setTitle("Create new Project");
 
+        stage = new Stage();
+        grid = new GridPane();
         grid.setPadding(new Insets(10));
         grid.setHgap(10);
         grid.setVgap(10);
@@ -49,7 +65,7 @@ public class Wizard {
         //button for import of pdfs
         Label labelImportPdf = new Label("Import PDFs:");
         Button importBtn = new Button("import pdf");
-        EventHandler<ActionEvent> importEvent = this::importpdfs;;
+        EventHandler<ActionEvent> importEvent = this::importpdfs;
         importBtn.setOnAction(importEvent);
 
         //button for import of Matrikelnummern
@@ -85,7 +101,7 @@ public class Wizard {
         cancelBtn.isCancelButton();
         cancelBtn.setOnAction(event -> stage.close());
 
-        ListView<String> pdfListView = new ListView<>(pdfNamesList);
+        ListView<File> pdfListView = new ListView<>(pdfNamesList);
         pdfListView.setFixedCellSize(24);
         int maxVisibleRows = 10;
         IntegerBinding visibleRowCount = Bindings.createIntegerBinding(
@@ -120,9 +136,7 @@ public class Wizard {
         List<File> files = fileChooser.showOpenMultipleDialog(stage);
 
         if (files != null) {
-            for (File file : files) {
-                pdfNamesList.add(file.getName());
-            }
+            pdfNamesList.addAll(files);
         }
     }
 
@@ -131,28 +145,76 @@ public class Wizard {
         fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
         File file = fileChooser.showOpenDialog(stage);
 
+        studentList = file;
         Label pdfName;
         if (file != null) {
-            pdfName = new Label(file.getName());
+            pdfName = new Label(studentList.getName());
             grid.add(pdfName, 1,4);
         }
     }
 
-    public void handleInputData(String projectName, String pageCount){
-        //todo: split pdf according to set page count -> start Thread
-        List<String> importedPdfNames = pdfNamesList;
+    public void handleInputData(String projectName, String pageCount) {
+        List<File> importedPdfNames = pdfNamesList;
         StringBuilder message = new StringBuilder();
         message.append("Projektname: ").append(projectName).append("\n");
         message.append("Seitenanzahl: ").append(pageCount).append("\n");
         message.append("Importierte PDFs:\n");
-        for (String pdfName : importedPdfNames) {
-            message.append("- ").append(pdfName).append("\n");
+
+        for (File pdfName : importedPdfNames) {
+            message.append("- ").append(pdfName.getName()).append("\n");
         }
 
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle("Eingabedaten");
         alert.setHeaderText("Eingaben des Projekts:");
         alert.setContentText(message.toString());
+
+        int numpages;
+        try {
+            numpages = Integer.parseInt(pageCount);
+        } catch (NumberFormatException e) {
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText("Invalid Number");
+            errorAlert.showAndWait();
+            return;
+        }
+
+        //merge pdfs to one
+        File allPages = importedPdfNames.getFirst();
+        try {
+            PDFMergerUtility pdfMerge = new PDFMergerUtility();
+            for(File pdf : importedPdfNames){
+                pdfMerge.addSource(pdf);
+            }
+            pdfMerge.setDestinationFileName(allPages.getAbsolutePath());
+            pdfMerge.mergeDocuments();
+        } catch (Exception e){
+            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+            errorAlert.setTitle("Error");
+            errorAlert.setHeaderText(e.getMessage());
+            errorAlert.showAndWait();
+        }
+
+        //runLater() put update in queue, GUI Thread will handle
+        Thread thread = new Thread(() -> {
+            try {
+                PDFTools.splitPDF(allPages, numpages);
+                con.list_students = (ObservableList<Student>) studentList;
+            } catch (IOException e) {
+                Platform.runLater(() -> {
+                    Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                    errorAlert.setTitle("Error");
+                    errorAlert.setContentText(e.getMessage());
+                    errorAlert.showAndWait();
+                });
+            }
+            Platform.runLater(() -> con.initialize());
+        });
+
+        thread.setDaemon(true);
+        thread.start();
+
         alert.showAndWait();
     }
 }
