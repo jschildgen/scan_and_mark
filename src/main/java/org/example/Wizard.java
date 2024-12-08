@@ -1,31 +1,30 @@
 package org.example;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
+import javafx.scene.layout.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.application.Platform;
-import javafx.stage.Window;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.example.model.Student;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.NoSuchFileException;
-import java.util.ArrayList;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Wizard {
     Stage stage = new Stage();
@@ -33,7 +32,8 @@ public class Wizard {
     Controller con = new Controller();
 
     ObservableList<File> pdfNamesList = FXCollections.observableArrayList();
-    File studentList = null;
+    ListView<File> excelListView = new ListView<>();
+    Map<String, Map<String, String>> studentData;
 
     public void showWizard() {
         if (stage.isShowing()) {
@@ -64,15 +64,73 @@ public class Wizard {
 
         //button for import of pdfs
         Label labelImportPdf = new Label("Import PDFs:");
-        Button importBtn = new Button("import pdf");
-        EventHandler<ActionEvent> importEvent = this::importpdfs;
-        importBtn.setOnAction(importEvent);
+        ListView<File> pdfListView = new ListView<>(pdfNamesList);
+        pdfListView.setFixedCellSize(24);
+        IntegerBinding pdfVisibleRowCount = Bindings.createIntegerBinding(
+                () -> Math.min(pdfNamesList.size(), 10), pdfNamesList
+        );
+        pdfListView.prefHeightProperty().bind(pdfVisibleRowCount.multiply(pdfListView.getFixedCellSize()));
+        Button addPdfBtn = new Button("+");
+        Button removePdfBtn = new Button("-");
+        Button moveUpPdfBtn = new Button("↑");
+        Button moveDownPdfBtn = new Button("↓");
 
-        //button for import of Matrikelnummern
-        Label labelMatrikel = new Label("Import Matrikelnummern:");
-        Button matrikelBtn = new Button("import Matrikelnummern");
-        EventHandler<ActionEvent> matrikelEvent = e -> importMatrikel();
-        matrikelBtn.setOnAction(matrikelEvent);
+        addPdfBtn.setOnAction(this::importpdfs);
+        removePdfBtn.setOnAction(event -> {
+            int selectedIndex = pdfListView.getSelectionModel().getSelectedIndex();
+            if (selectedIndex >= 0) {
+                pdfNamesList.remove(selectedIndex);
+            }
+        });
+
+        moveUpPdfBtn.setOnAction(event -> moveItem(pdfListView, -1));
+        moveDownPdfBtn.setOnAction(event -> moveItem(pdfListView, 1));
+
+        VBox pdfControlBox = new VBox(5, addPdfBtn, removePdfBtn, moveUpPdfBtn, moveDownPdfBtn);
+        HBox pdfListRow = new HBox(10, pdfControlBox, pdfListView);
+
+        //student number import
+        Label labelMatrikel = new Label("Import student numbers:");
+        ComboBox<String> matrikelDropdown = new ComboBox<>();
+        matrikelDropdown.getItems().addAll("HISinOne Excel File", "Custom CSV input");
+        matrikelDropdown.setValue("Pick an import option");
+        Label helpIcon = new Label("?");
+        helpIcon.setStyle("-fx-font-size: 14; -fx-text-fill: blue; -fx-cursor: hand;");
+        Tooltip tooltip = new Tooltip("HISinOne: import student numbers from HISinONe. Must be an excel .xlsx file containing Name and Number of Student and \"startHISsheet\"\n" +
+                "Optional: import via textfield manually");
+        Tooltip.install(helpIcon, tooltip);
+
+        ObservableList<File> excelFiles = FXCollections.observableArrayList();
+        excelListView.setItems(excelFiles);
+
+        Button addExcelBtn = new Button("+");
+        Button removeExcelBtn = new Button("-");
+
+        addExcelBtn.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+            File file = fileChooser.showOpenDialog(stage);
+
+            if (file != null) {
+                excelFiles.add(file);
+            }
+        });
+
+        removeExcelBtn.setOnAction(event -> {
+            int selectedIndex = excelListView.getSelectionModel().getSelectedIndex();
+            if (selectedIndex >= 0) {
+                excelFiles.remove(selectedIndex);
+            }
+        });
+
+        VBox excelControlBox = new VBox(5, addExcelBtn, removeExcelBtn);
+        HBox excelListRow = new HBox(10, excelControlBox, excelListView);
+        excelListRow.setVisible(false);
+
+        matrikelDropdown.setOnAction(event -> {
+            String selectedOption = matrikelDropdown.getValue();
+            excelListRow.setVisible("HISinOne Excel File".equals(selectedOption));
+        });
 
         //page count
         Label labelPageCount = new Label("Page count: ");
@@ -90,9 +148,9 @@ public class Wizard {
         createBtn.setText("Create");
         createBtn.isDefaultButton();
         createBtn.setOnAction(event -> {
-            String projectName = textName.getText();
             String pageCount = textPagecnt.getText();
-            handleInputData(projectName, pageCount);
+            studentData = readExcelFiles(excelFiles);
+            handleInputData(pageCount);
             stage.close();
         });
 
@@ -101,30 +159,32 @@ public class Wizard {
         cancelBtn.isCancelButton();
         cancelBtn.setOnAction(event -> stage.close());
 
-        ListView<File> pdfListView = new ListView<>(pdfNamesList);
-        pdfListView.setFixedCellSize(24);
-        int maxVisibleRows = 10;
-        IntegerBinding visibleRowCount = Bindings.createIntegerBinding(
-                () -> Math.min(pdfNamesList.size(), maxVisibleRows),
-                pdfNamesList
-        );
-        pdfListView.prefHeightProperty().bind(visibleRowCount.multiply(pdfListView.getFixedCellSize()));
-
         grid.add(labelName, 0, 0);
         grid.add(textName, 1, 0);
         grid.add(labelImportPdf, 0, 1);
-        grid.add(importBtn, 1, 1);
-        grid.add(pdfListView, 1, 2);
-        grid.add(labelMatrikel, 0, 3);
-        grid.add(matrikelBtn, 1, 3);
-        grid.add(labelPageCount, 0, 5);
-        grid.add(textPagecnt, 1, 5);
-        grid.add(createBtn, 1, 6);
-        grid.add(cancelBtn, 0, 6);
+        grid.add(pdfListRow, 1, 1);
+        grid.add(labelMatrikel, 0, 2);
+        grid.add(matrikelDropdown, 1, 2);
+        grid.add(excelListRow, 1, 3);
+        grid.add(labelPageCount, 0, 4);
+        grid.add(textPagecnt, 1, 4);
+        grid.add(createBtn, 1, 5);
+        grid.add(cancelBtn, 0, 5);
 
         Scene scene = new Scene(grid, 600, 400);
         stage.setScene(scene);
         stage.show();
+    }
+
+    private void moveItem(ListView<File> listView, int direction) {
+        int selectedIndex = listView.getSelectionModel().getSelectedIndex();
+        if (selectedIndex < 0 || (direction < 0 && selectedIndex == 0) || (direction > 0 && selectedIndex == listView.getItems().size() - 1)) {
+            return;
+        }
+        File item = listView.getItems().remove(selectedIndex);
+        int newIndex = selectedIndex + direction;
+        listView.getItems().add(newIndex, item);
+        listView.getSelectionModel().select(newIndex);
     }
 
     public void importpdfs(ActionEvent event){
@@ -140,34 +200,93 @@ public class Wizard {
         }
     }
 
-    public void importMatrikel(){
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
-        File file = fileChooser.showOpenDialog(stage);
+    public Map<String, Map<String, String>> readExcelFiles(List<File> excelFiles) {
+        Map<String, Map<String, String>> studentData = new HashMap<>();
 
-        studentList = file;
-        Label pdfName;
-        if (file != null) {
-            pdfName = new Label(studentList.getName());
-            grid.add(pdfName, 1,4);
+        for (File file : excelFiles) {
+            try (FileInputStream fis = new FileInputStream(file);
+                 Workbook workbook = new XSSFWorkbook(fis)) {
+                for (Sheet sheet : workbook) {
+                    boolean startFound = false;
+                    int lastNameCol = -1;
+                    int firstNameCol = -1;
+                    int matrikelCol = -1;
+
+                    for (Row row : sheet) {
+                        if (!startFound) {
+                            for (Cell cell : row) {
+                                if (cell.getCellType() == CellType.STRING &&
+                                        "startHISsheet".equalsIgnoreCase(cell.getStringCellValue())) {
+                                    startFound = true;
+                                    break;
+                                }
+                            }
+                            continue;
+                        }
+
+                        if (lastNameCol == -1 || firstNameCol == -1 || matrikelCol == -1) {
+                            for (Cell cell : row) {
+                                if (cell.getCellType() == CellType.STRING) {
+                                    String header = cell.getStringCellValue().toLowerCase();
+                                    if (header.contains("nachname")) {
+                                        lastNameCol = cell.getColumnIndex();
+                                    } else if (header.contains("vorname")) {
+                                        firstNameCol = cell.getColumnIndex();
+                                    } else if (header.contains("matrikelnummer")) {
+                                        matrikelCol = cell.getColumnIndex();
+                                    }
+                                }
+                            }
+                            continue;
+                        }
+
+                        Cell matrikelCell = row.getCell(matrikelCol);
+                        Cell lastNameCell = row.getCell(lastNameCol);
+                        Cell firstNameCell = row.getCell(firstNameCol);
+
+                        String matrikelNummer = matrikelCell != null ? getCellValueAsString(matrikelCell) : "";
+                        String lastName = lastNameCell != null ? getCellValueAsString(lastNameCell) : "";
+                        String firstName = firstNameCell != null ? getCellValueAsString(firstNameCell) : "";
+
+                        if ((!matrikelNummer.isEmpty())) {
+                            Student student = new Student(matrikelNummer);
+                            student.setName1(lastName);
+                            student.setName2(firstName);
+                            System.out.println(student.getName1());
+                            try {
+                                SAM.db.persist(student);
+                                con.list_students.add(student);
+                            } catch (SQLException e) {
+                                System.err.printf("Fehler beim Speichern des Studenten: %s, Nachname: %s, Vorname: %s%n",
+                                        matrikelNummer, lastName, firstName);
+                                e.printStackTrace();
+                            }
+                            //con.listView_students.refresh();
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("Fehler beim Lesen der Datei: " + file.getName());
+                e.printStackTrace();
+            }
         }
+        return studentData;
     }
 
-    public void handleInputData(String projectName, String pageCount) {
+    private String getCellValueAsString(Cell cell) {
+        if (cell == null) return "";
+
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue();
+            case NUMERIC -> String.valueOf(cell.getNumericCellValue());
+            case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
+            case FORMULA -> cell.getCellFormula();
+            default -> "";
+        };
+    }
+
+    public void handleInputData(String pageCount) {
         List<File> importedPdfNames = pdfNamesList;
-        StringBuilder message = new StringBuilder();
-        message.append("Projektname: ").append(projectName).append("\n");
-        message.append("Seitenanzahl: ").append(pageCount).append("\n");
-        message.append("Importierte PDFs:\n");
-
-        for (File pdfName : importedPdfNames) {
-            message.append("- ").append(pdfName.getName()).append("\n");
-        }
-
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Eingabedaten");
-        alert.setHeaderText("Eingaben des Projekts:");
-        alert.setContentText(message.toString());
 
         int numpages;
         try {
@@ -200,7 +319,6 @@ public class Wizard {
         Thread thread = new Thread(() -> {
             try {
                 PDFTools.splitPDF(allPages, numpages);
-                con.list_students = (ObservableList<Student>) studentList;
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
@@ -214,7 +332,5 @@ public class Wizard {
 
         thread.setDaemon(true);
         thread.start();
-
-        alert.showAndWait();
     }
 }
