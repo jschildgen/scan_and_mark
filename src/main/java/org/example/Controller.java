@@ -70,6 +70,7 @@ public class Controller {
     @FXML RadioButton filter_answers_notmarked;
     @FXML RadioButton filter_answers_completed;
     @FXML CheckBox limit_show_answers;
+    @FXML MenuBar menuBar = new MenuBar();
 
     ObservableList<Student> list_students = FXCollections.observableArrayList();
     ObservableList<Page> list_pages = FXCollections.observableArrayList();
@@ -80,6 +81,8 @@ public class Controller {
     private double[] image_click = new double[2];
 
     public void initialize() {
+        initializeMenu();
+
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
@@ -148,6 +151,28 @@ public class Controller {
 
         refreshTotalPoints();
         refreshProgress();
+    }
+
+    public void initializeMenu(){
+        Menu fileMenu = new Menu("File");
+        menuBar.getMenus().addAll(fileMenu);
+        MenuItem newProject = new MenuItem("New Project");
+        fileMenu.getItems().add(newProject);
+        MenuItem clear = new MenuItem("New Window");
+        fileMenu.getItems().add(clear);
+
+        Wizard wizard = new Wizard();
+        newProject.setOnAction(event -> wizard.showWizard());
+
+        Menu exportMenu = new Menu("Export");
+        menuBar.getMenus().addAll(exportMenu);
+        MenuItem exportStudents = new MenuItem("Export Students");
+        exportMenu.getItems().add(exportStudents);
+        MenuItem exportFeedback = new MenuItem("Export Feedback");
+        exportMenu.getItems().add(exportFeedback);
+
+        exportStudents.setOnAction(this::exportStudents);
+        exportMenu.setOnAction(this::exportFeedback);
     }
 
     public void clickStudent(MouseEvent mouseEvent) {

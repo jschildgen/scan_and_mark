@@ -1,4 +1,6 @@
 package org.example;
+
+import javafx.stage.DirectoryChooser;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -135,7 +137,6 @@ public class Wizard {
         //page count
         Label labelPageCount = new Label("Page count: ");
         TextField textPagecnt = new TextField();
-        textPagecnt.setPromptText("Page count: ");
         textPagecnt.setTextFormatter(new TextFormatter<>(change -> {
             String newText = change.getControlNewText();
             if (newText.matches("\\d*")) {
@@ -143,6 +144,21 @@ public class Wizard {
             }
             return null;
         }));
+
+        Label workingDirLbl = new Label("Working Dir: ");
+        TextField workingDir = new TextField();
+        Button chooseDirButton = new Button("Select Directory");
+        chooseDirButton.setOnAction(event -> {
+            DirectoryChooser directoryChooser = new DirectoryChooser();
+            directoryChooser.setTitle("Select Working Directory");
+            File selectedDirectory = directoryChooser.showDialog(stage);
+            if (selectedDirectory != null) {
+                workingDir.setText(selectedDirectory.getAbsolutePath());
+            }
+        });
+        HBox workingDirRow = new HBox(10, workingDir, chooseDirButton);
+        HBox.setHgrow(workingDir, Priority.ALWAYS);
+        workingDir.setPrefWidth(300);
 
         Button createBtn = new Button();
         createBtn.setText("Create");
@@ -168,8 +184,10 @@ public class Wizard {
         grid.add(excelListRow, 1, 3);
         grid.add(labelPageCount, 0, 4);
         grid.add(textPagecnt, 1, 4);
-        grid.add(createBtn, 1, 5);
-        grid.add(cancelBtn, 0, 5);
+        grid.add(workingDirLbl, 0, 5);
+        grid.add(workingDirRow, 1, 5);
+        grid.add(createBtn, 1, 6);
+        grid.add(cancelBtn, 0, 6);
 
         Scene scene = new Scene(grid, 600, 400);
         stage.setScene(scene);

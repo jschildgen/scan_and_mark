@@ -41,28 +41,10 @@ public class SAM extends Application {
             setBase_dir(Paths.get(System.getProperty("user.dir")));
         }
 
-        MenuBar menu = new MenuBar();
-        Menu fileMenu = new Menu("File");
-        menu.getMenus().addAll(fileMenu);
-        MenuItem newProject = new MenuItem("New Project");
-        fileMenu.getItems().add(newProject);
-        MenuItem clear = new MenuItem("New Window");
-        fileMenu.getItems().add(clear);
-
-        Wizard wizard = new Wizard();
-        newProject.setOnAction(event -> wizard.showWizard());
-        clear.setOnAction(event -> {
-            try {
-                clearPathConfigFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
         stage.setTitle("SAM - Scan and Mark");
         stage.getIcons().add(new Image(getClass().getResourceAsStream("sam80x80.png")));
-        VBox vBox = new VBox(menu, root);
+        VBox vBox = new VBox(root);
         Scene scene = new Scene(vBox, 1400, 900);
         stage.setScene(scene);
         stage.setMaximized(true);
@@ -82,25 +64,6 @@ public class SAM extends Application {
     protected static void updatePathInConfigFile(Path path) throws IOException {
         Path conf_file = Paths.get(System.getProperty("user.dir"), "dir.conf");
         Files.write(conf_file, path.toString().getBytes(), StandardOpenOption.TRUNCATE_EXISTING);
-    }
-
-    protected static void clearPathConfigFile() throws IOException {
-        //Todo: db clearen
-        /*Path dbPath = SAM.getBase_dir().resolve("db.sqlite3");
-        try {
-            if (Files.exists(dbPath)) {
-                Files.delete(dbPath);
-                System.out.println("Datenbank gelöscht: " + dbPath.toString());
-            } else {
-                System.out.println("Datenbank existiert nicht: " + dbPath.toString());
-            }
-        } catch (IOException e) {
-            System.err.println("Fehler beim Löschen der Datenbank: " + e.getMessage());
-            e.printStackTrace();
-        }
-        Path conf_file = Paths.get(System.getProperty("user.dir"), "dir.conf");
-        Files.write(conf_file, new byte[0], StandardOpenOption.TRUNCATE_EXISTING);
-        */
     }
 
     public static Path getBase_dir() {
