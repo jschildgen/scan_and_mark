@@ -37,6 +37,7 @@ public class DB {
                 stmt.executeUpdate("CREATE TABLE sam(k VARCHAR(255), v VARCHAR(255))");
                 stmt.executeUpdate("INSERT INTO sam(k,v) VALUES('db_version', '0.1.1')");
                 stmt.executeUpdate("ALTER TABLE students ADD COLUMN pdfpage int");
+                stmt.executeUpdate("ALTER TABLE students ADD COLUMN prcnt int");
             }
             set_sam_config("db_version", SAM.SAM_VERSION);
             System.out.println("Updated to " + SAM.SAM_VERSION);
@@ -110,17 +111,19 @@ public class DB {
         }
 
         PreparedStatement pstmt = conn.prepareStatement(
-                "INSERT INTO students (sid, matno, name1, name2, pdfpage) VALUES (?, ?, ?, ?, ?)" +
-                        " ON CONFLICT(sid) DO UPDATE SET matno = ?, name1 = ?, name2 = ?, pdfpage = ?");
+                "INSERT INTO students (sid, matno, name1, name2, pdfpage, prcnt) VALUES (?, ?, ?, ?, ?, ?)" +
+                        " ON CONFLICT(sid) DO UPDATE SET matno = ?, name1 = ?, name2 = ?, pdfpage = ?, prcnt = ?");
         pstmt.setInt(1, student.getId());
         pstmt.setString(2, student.getMatno());
         pstmt.setString(3, student.getName1());
         pstmt.setString(4, student.getName2());
         pstmt.setInt(5, student.getPdfpage());
-        pstmt.setString(2+4, student.getMatno());
-        pstmt.setString(3+4, student.getName1());
-        pstmt.setString(4+4, student.getName2());
-        pstmt.setInt(5+4, student.getPdfpage());
+        pstmt.setInt(6, student.getPrcnt());
+        pstmt.setString(2+5, student.getMatno());
+        pstmt.setString(3+5, student.getName1());
+        pstmt.setString(4+5, student.getName2());
+        pstmt.setInt(5+5, student.getPdfpage());
+        pstmt.setInt(6+5, student.getPrcnt());
         pstmt.executeUpdate();
     }
 
@@ -178,6 +181,7 @@ public class DB {
             student.setName1(rs.getString("name1"));
             student.setName2(rs.getString("name2"));
             student.setPdfpage(rs.getInt("pdfpage"));
+            student.setPrcnt(rs.getInt("prcnt"));
             students.add(student);
         }
         return students;
@@ -192,6 +196,7 @@ public class DB {
             student.setName1(rs.getString("name1"));
             student.setName2(rs.getString("name2"));
             student.setPdfpage(rs.getInt("pdfpage"));
+            student.setPrcnt(rs.getInt("prcnt"));
             return student;
         }
         return null;
@@ -251,13 +256,32 @@ public class DB {
         stmt.executeUpdate("DROP TABLE IF EXISTS exercises");
         stmt.executeUpdate("DROP TABLE IF EXISTS students");
         stmt.executeUpdate("CREATE TABLE sam(k VARCHAR(255), v VARCHAR(255))");
-        stmt.executeUpdate("CREATE TABLE students (sid int primary key, matno varchar(255), name1 varchar(255), name2 varchar(255), pdfpage int)");
+        stmt.executeUpdate("CREATE TABLE students (sid int primary key, matno varchar(255), name1 varchar(255), name2 varchar(255), pdfpage int, prcnt int)");
         stmt.executeUpdate("CREATE TABLE exercises (eid int primary key, label varchar(255), page varchar(255), points decimal(18,2), pos1x double, pos1y double, pos2x double, pos2y double)");
         stmt.executeUpdate("CREATE TABLE answers (student int references students(sid), exercise int references exercises(eid), points decimal(18,2), feedback varchar(2000000), PRIMARY KEY(student, exercise))");
         PreparedStatement pstmt_sam_insert = conn.prepareStatement("INSERT INTO sam(k,v) VALUES(?,?)");
         pstmt_sam_insert.setString(1, "db_version");
         pstmt_sam_insert.setString(2, SAM.SAM_VERSION);
         pstmt_sam_insert.executeUpdate();
+    }
+
+    public void setSAM(String k, String v) throws SQLException {
+        Statement stmt = conn.createStatement();
+        String select = "SELECT COUNT(*) FROM sam WHERE k = ?";
+        PreparedStatement pstmtSelect = conn.prepareStatement(select);
+        pstmtSelect.setString(1, k);
+        ResultSet rs = pstmtSelect.executeQuery();
+        PreparedStatement pstmt_sam;
+        if(rs.next() && rs.getInt(1) > 0) {
+            pstmt_sam = conn.prepareStatement("UPDATE sam SET v = ? WHERE k = ?");
+            pstmt_sam.setString(1, v);
+            pstmt_sam.setString(2, k);
+        } else {
+            pstmt_sam = conn.prepareStatement("INSERT INTO sam(k,v) VALUES(?,?)");
+            pstmt_sam.setString(1, k);
+            pstmt_sam.setString(2, v);
+        }
+        pstmt_sam.executeUpdate();
     }
 
     public void delete(Exercise exercise) throws SQLException {
@@ -324,12 +348,13 @@ public class DB {
     public Map<Student, BigDecimal> getStudentsWithPoints() throws SQLException {
         Map<Student, BigDecimal> students = new LinkedHashMap<>();
         Statement stmt = conn.createStatement();
-        ResultSet rs = stmt.executeQuery("SELECT S.sid, S.matno, S.name1, S.name2, S.pdfpage, sum(A.points) as points FROM students S JOIN answers A ON S.sid = A.student GROUP BY S.sid ORDER BY S.matno");
+        ResultSet rs = stmt.executeQuery("SELECT S.sid, S.matno, S.name1, S.name2, S.pdfpage, S.prcnt, sum(A.points) as points FROM students S JOIN answers A ON S.sid = A.student GROUP BY S.sid ORDER BY S.matno");
         while(rs.next()) {
             Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
             student.setName1(rs.getString("name1"));
             student.setName2(rs.getString("name2"));
             student.setPdfpage(rs.getInt("pdfpage"));
+            student.setPrcnt(rs.getInt("prcnt"));
             students.put(student, rs.getBigDecimal("points"));
         }
         return students;

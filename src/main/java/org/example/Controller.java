@@ -164,6 +164,13 @@ public class Controller {
         Wizard wizard = new Wizard();
         newProject.setOnAction(event -> wizard.showWizard());
 
+        Menu importMenu = new Menu("Import");
+        menuBar.getMenus().addAll(importMenu);
+        MenuItem importStudents = new MenuItem("Import Students");
+        importMenu.getItems().add(importStudents);
+
+        importStudents.setOnAction(this::importStudents);
+
         Menu exportMenu = new Menu("Export");
         menuBar.getMenus().addAll(exportMenu);
         MenuItem exportStudents = new MenuItem("Export Students");
@@ -173,6 +180,8 @@ public class Controller {
 
         exportStudents.setOnAction(this::exportStudents);
         exportMenu.setOnAction(this::exportFeedback);
+
+
     }
 
     public void clickStudent(MouseEvent mouseEvent) {

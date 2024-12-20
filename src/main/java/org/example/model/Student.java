@@ -17,6 +17,7 @@ public class Student implements Comparable<Student> {
     private String name2;
     private Map<String, Page> pages = null;
     private int pdfpage;
+    private int prcnt;
 
     public Student(Integer id) {
         this(id, null);
@@ -42,9 +43,10 @@ public class Student implements Comparable<Student> {
         }
     }
 
-    public Student(int examId, int pdfpage) {
+    public Student(int examId, int pdfpage, int prcnt) {
         this(examId);
         this.pdfpage = pdfpage;
+        this.prcnt = prcnt;
     }
 
     public Integer getId() {
@@ -91,6 +93,14 @@ public class Student implements Comparable<Student> {
 
     public void setPdfpage(int pdfpage) {
         this.pdfpage = pdfpage;
+    }
+
+    public int getPrcnt() {
+        return prcnt;
+    }
+
+    public void setPrcnt(int prcnt) {
+        this.prcnt = prcnt;
     }
 
     public Map<String, Page> getPages() {

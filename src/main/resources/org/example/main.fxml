@@ -20,7 +20,6 @@
                 <center><TextField fx:id="working_dir"/></center><right>
                 <HBox>
                     <Button text="..." onAction="#chooseDir"/>
-                    <Button text="Load" onAction="#loadDir" />
                 </HBox>
             </right>
             </BorderPane>

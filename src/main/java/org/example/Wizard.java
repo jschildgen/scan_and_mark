@@ -23,6 +23,9 @@ import org.example.model.Student;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
@@ -166,7 +169,7 @@ public class Wizard {
         createBtn.setOnAction(event -> {
             String pageCount = textPagecnt.getText();
             studentData = readExcelFiles(excelFiles);
-            handleInputData(pageCount);
+            handleInputData(pageCount, textName.getText(), workingDir.getText());
             stage.close();
         });
 
@@ -303,8 +306,34 @@ public class Wizard {
         };
     }
 
-    public void handleInputData(String pageCount) {
-        List<File> importedPdfNames = pdfNamesList;
+    public void handleInputData(String pageCount, String name, String workingDir) {
+        if (name == null || name.trim().isEmpty() || name.matches(".*[<>:\"/\\\\|?*].*")) {
+            name = "NewProject";
+        }
+
+        try {
+            SAM.db.setSAM("name", name);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if(!workingDir.isEmpty()){
+            Path dir = Paths.get(workingDir);
+            Path newDir = dir.resolve(name);
+            if (!Files.exists(newDir)) {
+                try {
+                    Files.createDirectories(newDir);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            SAM.setBase_dir(newDir);
+            try {
+                SAM.updatePathInConfigFile(newDir);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         int numpages;
         try {
@@ -317,26 +346,28 @@ public class Wizard {
             return;
         }
 
-        //merge pdfs to one
-        File allPages = importedPdfNames.getFirst();
-        try {
-            PDFMergerUtility pdfMerge = new PDFMergerUtility();
-            for(File pdf : importedPdfNames){
-                pdfMerge.addSource(pdf);
+        File outputFile = SAM.getBase_dir().resolve("allOf"+name+".pdf").toFile();
+        PDFMergerUtility pdfMerger = new PDFMergerUtility();
+        pdfMerger.setDestinationFileName(outputFile.getAbsolutePath());
+
+        for (File pdf : pdfNamesList) {
+            try {
+                pdfMerger.addSource(pdf);
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            pdfMerge.setDestinationFileName(allPages.getAbsolutePath());
-            pdfMerge.mergeDocuments();
-        } catch (Exception e){
-            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-            errorAlert.setTitle("Error");
-            errorAlert.setHeaderText(e.getMessage());
-            errorAlert.showAndWait();
+        }
+
+        try {
+            pdfMerger.mergeDocuments(null);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         //runLater() put update in queue, GUI Thread will handle
         Thread thread = new Thread(() -> {
             try {
-                PDFTools.splitPDF(allPages, numpages);
+                PDFTools.splitPDF(outputFile, numpages);
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     Alert errorAlert = new Alert(Alert.AlertType.ERROR);
