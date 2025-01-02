@@ -34,7 +34,7 @@ public class Student implements Comparable<Student> {
         /* set student's pages */
         this.pages = new LinkedHashMap<>();
         try {
-            Files.newDirectoryStream(SAM.getBase_dir().resolve(""+this.getId())).forEach((Path p) -> {
+            Files.newDirectoryStream(SAM.getPathFromConfigFile().resolve(""+this.getId())).forEach((Path p) -> {
                 Page page = new Page(p);
                 this.pages.put(page.getPageNo(), page);
             });

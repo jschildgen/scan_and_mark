@@ -1,6 +1,7 @@
 package org.example;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -8,6 +9,7 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -28,11 +30,8 @@ public class SAM extends Application {
     public void start(Stage stage) throws IOException {
         applicationInstance = this;
 
-        try {
-            setBase_dir(getPathFromConfigFile());
-        } catch (Exception e) {
-            setBase_dir(Paths.get(System.getProperty("user.dir")));
-        }
+        getPathFromConfigFile();
+        setBase_dir(Paths.get(System.getProperty("user.dir")));
 
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
         stage.setTitle("SAM - Scan and Mark");
@@ -44,10 +43,9 @@ public class SAM extends Application {
         stage.show();
     }
 
-    private static Path getPathFromConfigFile() throws IOException {
+    public static Path getPathFromConfigFile() throws IOException {
         Path conf_file = Paths.get(System.getProperty("user.dir"), "dir.conf");
-        if(!Files.exists(conf_file)) {
-            System.out.println("Creating new config file: "+conf_file);
+        if (!Files.exists(conf_file)) {
             Files.createFile(conf_file);
             Files.write(conf_file, System.getProperty("user.dir").getBytes(), StandardOpenOption.APPEND);
         }
@@ -65,9 +63,15 @@ public class SAM extends Application {
 
     public static void setBase_dir(Path base_dir) {
         SAM.base_dir = base_dir;
+    }
+
+    public static void createDB(){
         try {
-            db = new DB(base_dir.resolve("db.sqlite3"));
-        } catch (SQLException|IOException e) {
+            Path dbFile = getPathFromConfigFile().resolve("db.sqlite3");
+            if (!Files.exists(dbFile)) {
+                db = new DB(dbFile);
+            }
+        } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
     }

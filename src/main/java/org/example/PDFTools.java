@@ -30,7 +30,7 @@ public class PDFTools {
         for (int page = 0; page < document.getNumberOfPages(); ++page) {
             exam_id = page / numpages + 1;
             page_id = page % numpages + 1;
-            Path folder = SAM.getBase_dir().resolve(""+exam_id);
+            Path folder = SAM.getPathFromConfigFile().resolve(""+exam_id);
             if(!Files.exists(folder)) {
                 Files.createDirectory(folder);
             }
