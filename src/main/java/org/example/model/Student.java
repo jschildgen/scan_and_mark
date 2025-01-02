@@ -39,7 +39,7 @@ public class Student implements Comparable<Student> {
                 this.pages.put(page.getPageNo(), page);
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Number of students and number of imported pages doesnt match. File " + e.getMessage() + " doesnt match any student");
         }
     }
 

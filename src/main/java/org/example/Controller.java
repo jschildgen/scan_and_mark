@@ -146,7 +146,7 @@ public class Controller {
             Path dbFile = SAM.getPathFromConfigFile().resolve("db.sqlite3");
             SAM.db = new DB(dbFile);
             if (Files.exists(dbFile)) {
-                working_dir.setText(SAM.getBase_dir().toString());
+                working_dir.setText(SAM.getPathFromConfigFile().toString());
                 list_students.clear();
                 try {
                     for (Student student : SAM.db.getStudents()) {
@@ -526,8 +526,11 @@ public class Controller {
         student.setMatno(studentMatno.getText().isBlank() ? "" : studentMatno.getText());
 
         if (student_matno_autocomplete.containsKey(student.getMatno())) {
-            student.fusion(student_matno_autocomplete.get(student.getMatno()));
-
+            Student existingStudent = student_matno_autocomplete.get(student.getMatno());
+            student.fusion(existingStudent);
+            //todo: set pdfpage and prcnt
+            student.setPdfpage(existingStudent.getPdfpage());
+            student.setPrcnt(existingStudent.getPrcnt());
             new Thread(() -> TextToSpeech.speak(student.getName())).start();
         }
 

@@ -178,12 +178,12 @@ public class Wizard {
         createBtn.setOnAction(event -> {
             String pageCount = textPagecnt.getText();
             studentData = readExcelFiles(excelFiles);
-            handleInputData(pageCount, textName.getText(), workingDir.getText());
             String selectedOption = matrikelDropdown.getValue();
             if ("Custom CSV input".equals(selectedOption)) {
                 String studentText = studentsTextArea.getText();
                 importStudents(studentText);
             }
+            handleInputData(pageCount, textName.getText(), workingDir.getText());
             stage.close();
         });
 
@@ -224,19 +224,7 @@ public class Wizard {
                 if (parts.length >= 3) {
                     student.setName2(parts[2]);
                 }
-                student_matno_autocomplete.put(student.getMatno(), student);
-                con.list_students.add(student);
-            }
-
-            for (Student student : con.list_students) {
-                if (student_matno_autocomplete.containsKey(student.getMatno())) {
-                    student.fusion(student_matno_autocomplete.get(student.getMatno()));
-                    try {
-                        SAM.db.persist(student);
-                    } catch (SQLException e) {
-                        System.out.println("Database Error");
-                    }
-                }
+                studentsList.add(student);
             }
         }
     }
@@ -272,11 +260,13 @@ public class Wizard {
                  Workbook workbook = new XSSFWorkbook(fis)) {
                 for (Sheet sheet : workbook) {
                     boolean startFound = false;
+                    boolean endFound = false;
                     int lastNameCol = -1;
                     int firstNameCol = -1;
                     int matrikelCol = -1;
 
                     for (Row row : sheet) {
+                        if (endFound) break;
                         if (!startFound) {
                             for (Cell cell : row) {
                                 if (cell.getCellType() == CellType.STRING &&
@@ -287,6 +277,15 @@ public class Wizard {
                             }
                             continue;
                         }
+
+                        for (Cell cell : row) {
+                            if (cell.getCellType() == CellType.STRING &&
+                                    "endHISsheet".equalsIgnoreCase(cell.getStringCellValue())) {
+                                endFound = true;
+                                break;
+                            }
+                        }
+                        if (endFound) break;
 
                         if (lastNameCol == -1 || firstNameCol == -1 || matrikelCol == -1) {
                             for (Cell cell : row) {
@@ -364,8 +363,16 @@ public class Wizard {
             }
             for (Student student : studentsList) {
                 try {
-                    SAM.db.persist(student);
-                } catch (SQLException e) {
+                    student_matno_autocomplete.put(student.getMatno(), student);
+                    if (student_matno_autocomplete.containsKey(student.getMatno())) {
+                        student.fusion(student_matno_autocomplete.get(student.getMatno()));
+                        try {
+                            SAM.db.persist(student);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -414,7 +421,6 @@ public class Wizard {
                         errorAlert.showAndWait();
                     });
                 }
-                Platform.runLater(() -> con.initialize());
             });
 
             thread.setDaemon(true);

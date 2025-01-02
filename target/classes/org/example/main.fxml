@@ -14,19 +14,14 @@
             fx:id="fullPageBorderPane" onKeyPressed="#imageKeyReleased">
     <top>
         <VBox>
+            <MenuBar fx:id="menuBar"/>
             <BorderPane>
                 <left><Label text=" Working Directory: "/></left>
-                <center><TextField fx:id="working_dir"/></center>
-                <right>
-                    <HBox>
-                        <Button text="..." onAction="#chooseDir"/>
-                        <Button text="Load" onAction="#loadDir" />
-                        <Button text="Import PDF" onAction="#importPDF"/>
-                        <Button text="Import Students" onAction="#importStudents"/>
-                        <Button text="Export Students (Points)" onAction="#exportStudents"/>
-                        <Button text="Export Feedback" onAction="#exportFeedback"/>
-                    </HBox>
-                </right>
+                <center><TextField fx:id="working_dir"/></center><right>
+                <HBox>
+                    <Button text="..." onAction="#chooseDir"/>
+                </HBox>
+            </right>
             </BorderPane>
         </VBox>
     </top>

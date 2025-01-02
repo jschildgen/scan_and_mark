@@ -36,12 +36,12 @@ public class PDFTools {
             }
 
             if(page_id == 1) {
-                /* store new student in DB */
                 int prcnt = (int) ((double) page / (document.getNumberOfPages() - 1) * 100);
                 Student student = new Student(exam_id, page, prcnt);
                 try {
-                    SAM.db.persist(student);
-                } catch (SQLException e) {
+                    System.out.println("Trying to add percentage per page: " + prcnt);
+                    //SAM.db.persist(student);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
