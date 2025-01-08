@@ -38,7 +38,6 @@ public class Wizard {
     ObservableList<File> pdfNamesList = FXCollections.observableArrayList();
     ListView<File> excelListView = new ListView<>();
     Map<String, Map<String, String>> studentData;
-    private Map<String, Student> student_matno_autocomplete = new HashMap<>();
 
     private List<Student> studentsList = new ArrayList<>();
 
@@ -307,9 +306,15 @@ public class Wizard {
                         Cell lastNameCell = row.getCell(lastNameCol);
                         Cell firstNameCell = row.getCell(firstNameCol);
 
-                        String matrikelNummer = matrikelCell != null ? getCellValueAsString(matrikelCell) : "";
+                        String matrikelNummer = matrikelCell != null ? getCellValueAsString(matrikelCell).trim() : "";
                         String lastName = lastNameCell != null ? getCellValueAsString(lastNameCell) : "";
                         String firstName = firstNameCell != null ? getCellValueAsString(firstNameCell) : "";
+
+                        if (!matrikelNummer.isEmpty()) {
+                            if (matrikelNummer.matches("\\d+\\.0+")) {
+                                matrikelNummer = matrikelNummer.substring(0, matrikelNummer.indexOf('.'));
+                            }
+                        }
 
                         if ((!matrikelNummer.isEmpty())) {
                             Student student = new Student(matrikelNummer);
@@ -361,21 +366,7 @@ public class Wizard {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            for (Student student : studentsList) {
-                try {
-                    student_matno_autocomplete.put(student.getMatno(), student);
-                    if (student_matno_autocomplete.containsKey(student.getMatno())) {
-                        student.fusion(student_matno_autocomplete.get(student.getMatno()));
-                        try {
-                            SAM.db.persist(student);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
+
             try {
                 SAM.db.setSAM("name", name);
             } catch (SQLException e) {
@@ -413,6 +404,14 @@ public class Wizard {
             Thread thread = new Thread(() -> {
                 try {
                     PDFTools.splitPDF(outputFile, numpages);
+                    for (Student student : studentsList) {
+                        try {
+                            SAM.db.persist(student);
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
                 } catch (IOException e) {
                     Platform.runLater(() -> {
                         Alert errorAlert = new Alert(Alert.AlertType.ERROR);

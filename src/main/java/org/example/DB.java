@@ -359,4 +359,11 @@ public class DB {
         }
         return students;
     }
+
+    public void delete(Student student) throws SQLException {
+        if(student.getId() == null) { return; }
+        PreparedStatement pstmt = conn.prepareStatement("DELETE FROM students WHERE sid = ?");
+        pstmt.setInt(1, student.getId());
+        pstmt.executeUpdate();
+    }
 }

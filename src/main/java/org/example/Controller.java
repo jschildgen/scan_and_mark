@@ -98,7 +98,7 @@ public class Controller {
     ObservableList<Page> list_pages = FXCollections.observableArrayList();
     ObservableList<Exercise> list_exercises = FXCollections.observableArrayList();
 
-    private Map<String, Student> student_matno_autocomplete = new HashMap<>();
+    public Map<String, Student> student_matno_autocomplete = new HashMap<>();
 
     private double[] image_click = new double[2];
 
@@ -151,6 +151,7 @@ public class Controller {
                 try {
                     for (Student student : SAM.db.getStudents()) {
                         list_students.add(student);
+                        student_matno_autocomplete.put(student.getMatno(), student);
                     }
                 } catch (SQLException e) {
                     showError("DB Error: getStudents");
@@ -177,6 +178,7 @@ public class Controller {
                 });
                 refreshTotalPoints();
                 refreshProgress();
+
             }
         } catch (Exception e){
             e.printStackTrace();
@@ -520,17 +522,16 @@ public class Controller {
     }
 
 
-    public void changeStudent(KeyEvent keyEvent) {
+    public void changeStudent(KeyEvent keyEvent) throws SQLException {
         Student student = (Student) listView_students.getSelectionModel().getSelectedItem();
 
         student.setMatno(studentMatno.getText().isBlank() ? "" : studentMatno.getText());
 
         if (student_matno_autocomplete.containsKey(student.getMatno())) {
             Student existingStudent = student_matno_autocomplete.get(student.getMatno());
+            listView_students.getItems().removeIf(s -> s.equals(existingStudent));
+            SAM.db.delete(existingStudent);
             student.fusion(existingStudent);
-            //todo: set pdfpage and prcnt
-            student.setPdfpage(existingStudent.getPdfpage());
-            student.setPrcnt(existingStudent.getPrcnt());
             new Thread(() -> TextToSpeech.speak(student.getName())).start();
         }
 

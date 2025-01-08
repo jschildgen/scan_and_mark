@@ -39,8 +39,7 @@ public class PDFTools {
                 int prcnt = (int) ((double) page / (document.getNumberOfPages() - 1) * 100);
                 Student student = new Student(exam_id, page, prcnt);
                 try {
-                    System.out.println("Trying to add percentage per page: " + prcnt);
-                    //SAM.db.persist(student);
+                    SAM.db.persist(student);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
