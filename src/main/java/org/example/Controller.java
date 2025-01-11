@@ -1,7 +1,6 @@
 package org.example;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,6 +10,10 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.*;
 
+import com.opencsv.CSVReader;
+
+import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvException;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -38,6 +41,8 @@ import org.example.model.Answer;
 import org.example.model.Exercise;
 import org.example.model.Page;
 import org.example.model.Student;
+
+import javax.swing.*;
 
 public class Controller {
     private static boolean FULL_WIDTH_EXERCISES = true;
@@ -150,7 +155,9 @@ public class Controller {
                 list_students.clear();
                 try {
                     for (Student student : SAM.db.getStudents()) {
-                        list_students.add(student);
+                        if (student.getPdfpage()!=0) {
+                            list_students.add(student);
+                        }
                         student_matno_autocomplete.put(student.getMatno(), student);
                     }
                 } catch (SQLException e) {
@@ -190,8 +197,6 @@ public class Controller {
         menuBar.getMenus().addAll(fileMenu);
         MenuItem newProject = new MenuItem("New Project");
         fileMenu.getItems().add(newProject);
-        MenuItem clear = new MenuItem("New Window");
-        fileMenu.getItems().add(clear);
 
         Wizard wizard = new Wizard();
         newProject.setOnAction(event -> wizard.showWizard());
@@ -200,8 +205,6 @@ public class Controller {
         menuBar.getMenus().addAll(importMenu);
         MenuItem importStudents = new MenuItem("Import Students");
         importMenu.getItems().add(importStudents);
-
-        importStudents.setOnAction(this::importStudents);
 
         Menu exportMenu = new Menu("Export");
         menuBar.getMenus().addAll(exportMenu);
@@ -212,6 +215,96 @@ public class Controller {
 
         exportStudents.setOnAction(this::exportStudents);
         exportMenu.setOnAction(this::exportFeedback);
+
+        Menu moodleMenu = new Menu("Moodle");
+        menuBar.getMenus().addAll(moodleMenu);
+        MenuItem processMoodle = new MenuItem("Export student point to Moodle");
+        moodleMenu.getItems().add(processMoodle);
+        try{
+            processMoodle.setOnAction(actionEvent -> {
+                try {
+                    importELOStudents();
+                } catch (IOException | CsvException | SQLException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void importELOStudents() throws IOException, CsvException, SQLException {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
+        File selectedFile = fileChooser.showOpenDialog(fullPageBorderPane.getScene().getWindow());
+        if (selectedFile == null) {
+            return;
+        }
+        String outputFile = SAM.getPathFromConfigFile() + "/studentsData.csv";
+        try (CSVReader reader = new CSVReader(new FileReader(selectedFile));
+             CSVWriter writer = new CSVWriter(new FileWriter(outputFile),
+                     CSVWriter.DEFAULT_SEPARATOR,
+                     CSVWriter.NO_QUOTE_CHARACTER,
+                     CSVWriter.DEFAULT_ESCAPE_CHARACTER,
+                     CSVWriter.DEFAULT_LINE_END)) {
+            List<Student> students = SAM.db.getStudents();
+            List<Exercise> exercises = SAM.db.getExercises();
+            List<String[]> rows = reader.readAll();
+            if (rows.isEmpty()) {
+                return;
+            }
+            String[] header = rows.get(0);
+            int emailIndex = -1;
+            int antwort1Index = -1;
+
+            for (int i = 0; i < header.length; i++) {
+                if (header[i].equalsIgnoreCase("E-Mail-Adresse")) {
+                    emailIndex = i;
+                } else if (header[i].equalsIgnoreCase("Antwort 1")) {
+                    antwort1Index = i;
+                }
+            }
+            if (emailIndex == -1 || antwort1Index == -1) {
+                return;
+            }
+
+            String[] newHeader = {"email", "points", "feedback_text"};
+            writer.writeNext(newHeader);
+
+            for (int i = 1; i < rows.size(); i++) {
+                String[] row = rows.get(i);
+                String email = row[emailIndex];
+                String antwort1 = row[antwort1Index];
+                Student matchedStudent = students.stream()
+                        .filter(student -> student.getMatno().equals(antwort1))
+                        .findFirst()
+                        .orElse(null);
+                if (matchedStudent != null) {
+                    int totalPoints = 0;
+                    StringBuilder feedbackBuilder = new StringBuilder();
+                    for (Exercise exercise : exercises) {
+                        Answer answer = SAM.db.getAnswer(matchedStudent, exercise);
+                        if (answer.getPoints() != null) {
+                            totalPoints += answer.getPoints().intValue();
+                        }
+                        if (answer.getFeedback() != null && !answer.getFeedback().isEmpty()) {
+                            feedbackBuilder.append(answer.getFeedback()).append(" ");
+                        }
+                    }
+                    String feedback = feedbackBuilder.toString().trim();
+                    String[] newRow = {email, String.valueOf(totalPoints), feedback};
+                    writer.writeNext(newRow);
+                }
+            }
+            JOptionPane.showMessageDialog(null,
+                    "The CSV file was created successfully: " + outputFile,
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 
     public void clickStudent(MouseEvent mouseEvent) {
@@ -762,6 +855,7 @@ public class Controller {
                     student.setName2(parts[2]);
                 }
                 student_matno_autocomplete.put(student.getMatno(), student);
+                list_students.add(student);
             }
 
             for (Student student : list_students) {

@@ -37,7 +37,12 @@ public class PDFTools {
 
             if(page_id == 1) {
                 int prcnt = (int) ((double) page / (document.getNumberOfPages() - 1) * 100);
-                Student student = new Student(exam_id, page, prcnt);
+                Student student;
+                if(page==0){
+                    student = new Student(exam_id, 1, prcnt);
+                } else {
+                    student = new Student(exam_id, page, prcnt);
+                }
                 try {
                     SAM.db.persist(student);
                 } catch (Exception e) {

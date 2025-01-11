@@ -18,9 +18,6 @@
             <BorderPane>
                 <left><Label text=" Working Directory: "/></left>
                 <center><TextField fx:id="working_dir"/></center><right>
-                <HBox>
-                    <Button text="..." onAction="#chooseDir"/>
-                </HBox>
             </right>
             </BorderPane>
         </VBox>

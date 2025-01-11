@@ -171,6 +171,32 @@ public class Wizard {
         HBox.setHgrow(workingDir, Priority.ALWAYS);
         workingDir.setPrefWidth(300);
 
+        Label chooseDB = new Label("Choose prefered DB configuration: ");
+        ComboBox<String> dbDropdown = new ComboBox<>();
+        dbDropdown.getItems().addAll("Local Database", "Remote Database");
+        dbDropdown.setValue("Pick a database option");
+        Label hostLabel = new Label("Host:");
+        TextField hostField = new TextField();
+        Label portLabel = new Label("Port:");
+        TextField portField = new TextField("3306");
+        Label dbNameLabel = new Label("Database Name:");
+        TextField dbNameField = new TextField();
+        Label userLabel = new Label("Username:");
+        TextField userField = new TextField();
+        Label passwordLabel = new Label("Password:");
+        PasswordField passwordField = new PasswordField();
+        HBox hostRow = new HBox(10, hostLabel, hostField);
+        HBox portRow = new HBox(10, portLabel, portField);
+        HBox dbNameRow = new HBox(10, dbNameLabel, dbNameField);
+        HBox userRow = new HBox(10, userLabel, userField);
+        HBox passwordRow = new HBox(10, passwordLabel, passwordField);
+        VBox dbConfig = new VBox(10, hostRow, portRow, dbNameRow, userRow, passwordRow);
+
+        dbConfig.setVisible(false);
+        dbDropdown.setOnAction(event -> {
+            dbConfig.setVisible(dbDropdown.getValue().equals("Remote Database"));
+        });
+
         Button createBtn = new Button();
         createBtn.setText("Create");
         createBtn.isDefaultButton();
@@ -191,6 +217,7 @@ public class Wizard {
         cancelBtn.isCancelButton();
         cancelBtn.setOnAction(event -> stage.close());
 
+
         grid.add(labelName, 0, 0);
         grid.add(textName, 1, 0);
         grid.add(labelImportPdf, 0, 1);
@@ -198,15 +225,18 @@ public class Wizard {
         grid.add(labelMatrikel, 0, 2);
         grid.add(matrikelDropdown, 1, 2);
         grid.add(excelListRow, 1, 3);
-        grid.add(importStudentsSection, 1, 4);
+        grid.add(importStudentsSection, 1, 3);
         grid.add(labelPageCount, 0, 5);
         grid.add(textPagecnt, 1, 5);
         grid.add(workingDirLbl, 0, 6);
         grid.add(workingDirRow, 1, 6);
-        grid.add(createBtn, 1, 7);
-        grid.add(cancelBtn, 0, 7);
+        grid.add(chooseDB, 0, 7);
+        grid.add(dbDropdown, 1, 7);
+        grid.add(dbConfig, 1, 8);
+        grid.add(createBtn, 1, 9);
+        grid.add(cancelBtn, 0, 9);
 
-        Scene scene = new Scene(grid, 600, 600);
+        Scene scene = new Scene(grid, 600, 800);
         stage.setScene(scene);
         stage.show();
     }
