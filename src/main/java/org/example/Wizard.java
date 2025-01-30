@@ -1,5 +1,6 @@
 package org.example;
 
+import javafx.concurrent.Task;
 import javafx.stage.DirectoryChooser;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Consumer;
@@ -38,6 +40,8 @@ public class Wizard {
     ObservableList<File> pdfNamesList = FXCollections.observableArrayList();
     ListView<File> excelListView = new ListView<>();
     Map<String, Map<String, String>> studentData;
+    Map<String, String> dbConfigMap = new HashMap<>();
+    boolean remoteConnection = false;
 
     private List<Student> studentsList = new ArrayList<>();
 
@@ -208,7 +212,24 @@ public class Wizard {
                 String studentText = studentsTextArea.getText();
                 importStudents(studentText);
             }
-            handleInputData(pageCount, textName.getText(), workingDir.getText());
+            if("Remote Database".equals(dbDropdown.getValue())){
+                dbConfigMap.put("Host", hostField.getText());
+                dbConfigMap.put("Port", portField.getText());
+                dbConfigMap.put("Database Name", dbNameField.getText());
+                dbConfigMap.put("Username", userField.getText());
+                dbConfigMap.put("Password", passwordField.getText());
+                try {
+                    Connection connection = DB.remoteConnection(dbConfigMap);
+                    remoteConnection = true;
+                } catch (SQLException throwables) {
+                    throwables.printStackTrace();
+                }
+            }
+            try {
+                handleInputData(pageCount, textName.getText(), workingDir.getText());
+            } catch (IOException | SQLException e) {
+                e.printStackTrace();
+            }
             stage.close();
         });
 
@@ -224,7 +245,7 @@ public class Wizard {
         grid.add(pdfListRow, 1, 1);
         grid.add(labelMatrikel, 0, 2);
         grid.add(matrikelDropdown, 1, 2);
-        grid.add(excelListRow, 1, 3);
+        grid.add(excelListRow, 1, 4);
         grid.add(importStudentsSection, 1, 3);
         grid.add(labelPageCount, 0, 5);
         grid.add(textPagecnt, 1, 5);
@@ -375,7 +396,7 @@ public class Wizard {
         };
     }
 
-    public void handleInputData(String pageCount, String name, String workingDir) {
+    public void handleInputData(String pageCount, String name, String workingDir) throws IOException, SQLException {
         if (name == null || name.trim().isEmpty() || name.matches(".*[<>:\"/\\\\|?*].*")) {
             name = "NewProject";
         }
@@ -384,25 +405,15 @@ public class Wizard {
             Path dir = Paths.get(workingDir);
             Path newDir = dir.resolve(name);
             if (!Files.exists(newDir)) {
-                try {
-                    Files.createDirectories(newDir);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                Files.createDirectories(newDir);
             }
-            try {
-                SAM.updatePathInConfigFile(newDir);
+            SAM.updatePathInConfigFile(newDir);
+            if(!remoteConnection){
                 SAM.createDB();
-            } catch (IOException e) {
-                e.printStackTrace();
+            } else {
+                System.out.println("Remote Connection");
             }
-
-            try {
-                SAM.db.setSAM("name", name);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
+            SAM.db.setSAM("name", name);
             int numpages;
             try {
                 numpages = Integer.parseInt(pageCount);
@@ -419,41 +430,40 @@ public class Wizard {
             pdfMerger.setDestinationFileName(outputFile.getAbsolutePath());
 
             for (File pdf : pdfNamesList) {
-                try {
-                    pdfMerger.addSource(pdf);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                pdfMerger.addSource(pdf);
             }
-            try {
-                pdfMerger.mergeDocuments(null);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            //runLater() put update in queue, GUI Thread will handle
-            Thread thread = new Thread(() -> {
-                try {
-                    PDFTools.splitPDF(outputFile, numpages);
-                    for (Student student : studentsList) {
-                        try {
+            pdfMerger.mergeDocuments(null);
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() throws Exception {
+                    try {
+                        PDFTools.splitPDF(outputFile, numpages);
+                        for (Student student : studentsList) {
                             SAM.db.persist(student);
-                        } catch (SQLException e) {
-                            e.printStackTrace();
                         }
-
+                    } catch (IOException | SQLException e) {
+                        Platform.runLater(() -> {
+                            Alert errorAlert = new Alert(Alert.AlertType.ERROR);
+                            errorAlert.setTitle("Error");
+                            errorAlert.setContentText(e.getMessage());
+                            errorAlert.showAndWait();
+                        });
                     }
-                } catch (IOException e) {
+                    return null;
+                }
+
+                @Override
+                protected void succeeded() {
                     Platform.runLater(() -> {
-                        Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-                        errorAlert.setTitle("Error");
-                        errorAlert.setContentText(e.getMessage());
-                        errorAlert.showAndWait();
+                        System.out.println("Loaded wizard");
                     });
                 }
-            });
+            };
 
+            Thread thread = new Thread(task);
             thread.setDaemon(true);
             thread.start();
+
         }
     }
 }

@@ -28,6 +28,26 @@ public class DB {
         }
     }
 
+    public static Connection remoteConnection(Map<String, String> dbConfigMap) throws SQLException {
+        String host = dbConfigMap.get("Host");
+        String port = dbConfigMap.get("Port");
+        String dbName = dbConfigMap.get("Database Name");
+        String user = dbConfigMap.get("Username");
+        String password = dbConfigMap.get("Password");
+        String url = "jdbc:mariadb://" + host + ":" + port + "/" + dbName;
+        Connection connection = DriverManager.getConnection(url, user, password);
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                if (connection != null && !connection.isClosed()) {
+                    connection.close();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }));
+        return connection;
+    }
+
     private void updateDB() {
         System.out.println("Updating database");
         try {
