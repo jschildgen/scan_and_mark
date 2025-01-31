@@ -30,17 +30,22 @@ public class PDFTools {
         for (int page = 0; page < document.getNumberOfPages(); ++page) {
             exam_id = page / numpages + 1;
             page_id = page % numpages + 1;
-            Path folder = SAM.getBase_dir().resolve(""+exam_id);
+            Path folder = SAM.getPathFromConfigFile().resolve(""+exam_id);
             if(!Files.exists(folder)) {
                 Files.createDirectory(folder);
             }
 
             if(page_id == 1) {
-                /* store new student in DB */
-                Student student = new Student(exam_id, page);
+                int prcnt = (int) ((double) page / (document.getNumberOfPages() - 1) * 100);
+                Student student;
+                if(page==0){
+                    student = new Student(exam_id, 1, prcnt);
+                } else {
+                    student = new Student(exam_id, page, prcnt);
+                }
                 try {
                     SAM.db.persist(student);
-                } catch (SQLException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }

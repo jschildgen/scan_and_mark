@@ -11,6 +11,9 @@ module org.example {
     requires javafx.swing;
     requires commons.csv;
     requires freetts;
+    requires org.apache.poi.poi;
+    requires org.apache.poi.ooxml;
+    requires opencsv;
     opens org.example to javafx.fxml;
     exports org.example;
     exports org.example.model;

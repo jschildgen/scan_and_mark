@@ -17,6 +17,7 @@ public class Student implements Comparable<Student> {
     private String name2;
     private Map<String, Page> pages = null;
     private int pdfpage;
+    private int prcnt;
 
     public Student(Integer id) {
         this(id, null);
@@ -33,18 +34,19 @@ public class Student implements Comparable<Student> {
         /* set student's pages */
         this.pages = new LinkedHashMap<>();
         try {
-            Files.newDirectoryStream(SAM.getBase_dir().resolve(""+this.getId())).forEach((Path p) -> {
+            Files.newDirectoryStream(SAM.getPathFromConfigFile().resolve(""+this.getId())).forEach((Path p) -> {
                 Page page = new Page(p);
                 this.pages.put(page.getPageNo(), page);
             });
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Number of students and number of imported pages doesnt match. File " + e.getMessage() + " doesnt match any student");
         }
     }
 
-    public Student(int examId, int pdfpage) {
+    public Student(int examId, int pdfpage, int prcnt) {
         this(examId);
         this.pdfpage = pdfpage;
+        this.prcnt = prcnt;
     }
 
     public Integer getId() {
@@ -91,6 +93,14 @@ public class Student implements Comparable<Student> {
 
     public void setPdfpage(int pdfpage) {
         this.pdfpage = pdfpage;
+    }
+
+    public int getPrcnt() {
+        return prcnt;
+    }
+
+    public void setPrcnt(int prcnt) {
+        this.prcnt = prcnt;
     }
 
     public Map<String, Page> getPages() {
