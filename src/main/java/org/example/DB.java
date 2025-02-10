@@ -200,6 +200,7 @@ public class DB {
             Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
             student.setName1(rs.getString("name1"));
             student.setName2(rs.getString("name2"));
+            student.setPdfpage(rs.getInt("pdfpage"));
             student.setPrcnt(rs.getInt("prcnt"));
             students.add(student);
         }
