@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.collections.FXCollections?>
+
+<?import javafx.geometry.Insets?>
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="org.example.NewProjectController" prefWidth="600">
+    <padding>
+        <Insets top="10" right="10" bottom="10" left="10"/>
+    </padding>
+    <center>
+        <GridPane hgap="10" vgap="10">
+
+            <columnConstraints>
+                <ColumnConstraints hgrow="NEVER" minWidth="50"/>
+                <ColumnConstraints hgrow="ALWAYS" percentWidth="60"/>
+            </columnConstraints>
+
+            <!-- Project Name -->
+            <Label text="Name:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+            <TextField fx:id="projectName" promptText="Name:" GridPane.rowIndex="0" GridPane.columnIndex="1" prefWidth="500"/>
+
+            <!-- Import PDFs -->
+            <Label text="Import PDFs:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+            <HBox spacing="10" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                <VBox spacing="5">
+                    <Button text="+" onAction="#importPDFs"/>
+                    <Button text="-" onAction="#removePDF"/>
+                    <Button text="↑" onAction="#moveUpPDF"/>
+                    <Button text="↓" onAction="#moveDownPDF"/>
+                </VBox>
+                <ListView fx:id="pdfListView" prefHeight="240" prefWidth="525"/>
+            </HBox>
+
+            <!-- Student Number Import -->
+            <Label text="Import student numbers:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+
+            <TabPane GridPane.rowIndex="2" GridPane.columnIndex="1">
+                <tabs>
+                    <Tab text="HISinOne Excel Files">
+                        <content>
+                            <HBox spacing="10">
+                                <VBox spacing="5">
+                                    <Button text="+" onAction="#addExcel"/>
+                                    <Button text="-" onAction="#removeExcel"/>
+                                </VBox>
+                                <ListView fx:id="excelListView" prefHeight="240" prefWidth="525"/>
+                            </HBox>
+                        </content>
+                    </Tab>
+                    <Tab text="Custom CSV input">
+                        <content>
+                            <VBox spacing="10">
+                                <Label text="Copy/Paste tab-separated list of students' matno"/>
+                                <Label text="and name (e.g., from Excel), one student per line."/>
+                                <TextArea fx:id="studentsTextArea" promptText="Matno\tName" onKeyReleased="#changeStudentsTextArea"/>
+                            </VBox>
+                        </content>
+                    </Tab>
+                </tabs>
+            </TabPane>
+
+
+            <!-- Page Count -->
+            <Label text="Pages per exam:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+            <HBox GridPane.rowIndex="3" GridPane.columnIndex="1" prefWidth="50">
+                <TextField fx:id="textPageCount" prefWidth="50" onKeyReleased="#refreshNumPages"/>
+                <Label fx:id="numpages"/>
+            </HBox>
+
+            <!-- Working Directory Selection -->
+            <Label text="Working Dir:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+            <HBox spacing="10" GridPane.rowIndex="4" GridPane.columnIndex="1">
+                <TextField fx:id="workingDir" prefWidth="300"/>
+                <Button text="Select Directory" onAction="#chooseDirectory"/>
+            </HBox>
+
+            <!-- Database Configuration -->
+            <Label text="Database:" GridPane.rowIndex="5" GridPane.columnIndex="0"/>
+            <ComboBox fx:id="dbDropdown" value="Local Database (SQLite)" GridPane.rowIndex="5" GridPane.columnIndex="1" onAction="#changeDBType">
+                <items>
+                    <FXCollections fx:factory="observableArrayList">
+                        <String fx:value="Local Database (SQLite)" />
+                        <String fx:value="Remote Database (MySQL / MariaDB)"/>
+                    </FXCollections>
+                </items>
+            </ComboBox>
+            <VBox spacing="10" GridPane.rowIndex="6" GridPane.columnIndex="1">
+                <HBox spacing="2">
+                    <TextField fx:id="db_host" promptText="Hostname:Port" prefWidth="100" disable="true"/>
+                    <TextField fx:id="db_db" promptText="DB" prefWidth="100" disable="true"/>
+                    <TextField fx:id="db_user" promptText="User" prefWidth="100" disable="true"/>
+                    <PasswordField fx:id="db_password" promptText="Password" prefWidth="100" disable="true"/>
+                </HBox>
+            </VBox>
+
+            <!-- Buttons -->
+            <HBox spacing="10" GridPane.rowIndex="8" GridPane.columnIndex="1">
+                <Button text="Create" defaultButton="true" onAction="#createProject"/>
+                <Button text="Cancel" cancelButton="true" onAction="#cancel"/>
+            </HBox>
+        </GridPane>
+    </center>
+
+    <bottom>
+        <ProgressBar maxWidth="Infinity" progress="0" fx:id="progress"/>
+    </bottom>
+</BorderPane>

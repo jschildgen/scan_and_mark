@@ -19,6 +19,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
@@ -47,6 +50,27 @@ import javax.swing.*;
 public class Controller {
     private static boolean FULL_WIDTH_EXERCISES = true;
     public SplitPane examsSplitPane;
+
+    public void newproject(ActionEvent actionEvent) {
+        Stage primaryStage = (Stage) examsSplitPane.getScene().getWindow();
+        double minWidth = primaryStage.getWidth();
+        double minHeight = primaryStage.getHeight();
+
+        primaryStage.setMinWidth(minWidth);
+        primaryStage.setMinHeight(minHeight);
+
+        try {
+            Parent root = FXMLLoader.load(getClass().getResource("newproject.fxml"));
+            Stage stage = new Stage();
+            stage.setTitle("New Project");
+            stage.initModality(Modality.NONE); // Set modality to NONE
+            stage.setScene(new Scene(root));
+            stage.showAndWait();
+        } catch (IOException e) {
+            e.printStackTrace();
+            showError("Error loading New Project Wizard: " + e.getMessage());
+        }
+    }
 
     private static enum AnswerFilter {ALL, NOT_MARKTED, COMPLETED}
 
@@ -107,9 +131,11 @@ public class Controller {
 
     private double[] image_click = new double[2];
 
-    public void initialize() {
-        initializeMenu();
+    public static void refresh() {
+        controllerInstance.initialize();
+    }
 
+    public void initialize() {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
@@ -192,51 +218,14 @@ public class Controller {
         }
     }
 
-    public void initializeMenu() {
-        Menu fileMenu = new Menu("File");
-        menuBar.getMenus().addAll(fileMenu);
-        MenuItem newProject = new MenuItem("New Project");
-        fileMenu.getItems().add(newProject);
-
-        Wizard wizard = new Wizard();
-        newProject.setOnAction(event -> wizard.showWizard());
-
-        Menu importMenu = new Menu("Import");
-        menuBar.getMenus().addAll(importMenu);
-        MenuItem importStudents = new MenuItem("Import Students");
-        importMenu.getItems().add(importStudents);
-
-        Menu exportMenu = new Menu("Export");
-        menuBar.getMenus().addAll(exportMenu);
-        MenuItem exportStudents = new MenuItem("Export Students");
-        exportMenu.getItems().add(exportStudents);
-        MenuItem exportFeedback = new MenuItem("Export Feedback");
-        exportMenu.getItems().add(exportFeedback);
-
-        exportStudents.setOnAction(this::exportStudents);
-        exportMenu.setOnAction(this::exportFeedback);
-
-        Menu moodleMenu = new Menu("Moodle");
-        menuBar.getMenus().addAll(moodleMenu);
-        MenuItem processMoodle = new MenuItem("Export student point to Moodle");
-        moodleMenu.getItems().add(processMoodle);
-        try{
-            processMoodle.setOnAction(actionEvent -> {
-                try {
-                    importELOStudents();
-                } catch (IOException | CsvException | SQLException e) {
-                    e.printStackTrace();
-                }
-            });
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     public void importELOStudents() throws IOException, CsvException, SQLException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
-        File selectedFile = fileChooser.showOpenDialog(fullPageBorderPane.getScene().getWindow());
+
+        Stage fileChooserStage = new Stage();
+        fileChooserStage.initModality(Modality.NONE); // Set modality to NONE
+
+        File selectedFile = fileChooser.showOpenDialog(fileChooserStage);
         if (selectedFile == null) {
             return;
         }
@@ -304,7 +293,6 @@ public class Controller {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     public void clickStudent(MouseEvent mouseEvent) {
@@ -659,7 +647,7 @@ public class Controller {
         //initialize();
     }
 
-    public void importPDF(ActionEvent actionEvent) {
+    /*public void importPDF(ActionEvent actionEvent) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
         File selectedFile = fileChooser.showOpenDialog(fullPageBorderPane.getScene().getWindow());
@@ -687,7 +675,7 @@ public class Controller {
             //Platform.runLater(() -> initialize());
         });
         thread.start();
-    }
+    }*/
 
     private void refreshRectangles() {
         fullPageImagePane.getChildren().removeIf(n -> n instanceof Rectangle || n instanceof Text);
@@ -761,7 +749,7 @@ public class Controller {
         return windowPos;
     }
 
-    private void showError(String msg) {
+    protected static void showError(String msg) {
         Alert a = new Alert(AlertType.ERROR);
         a.setContentText(msg);
         a.show();
@@ -827,24 +815,20 @@ public class Controller {
     }
 
     public void importStudents(ActionEvent actionEvent) {
-        Dialog<String> dialog = new Dialog<>();
-        dialog.setTitle("Import Students");
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Import Students");
+        dialogStage.initModality(Modality.NONE); // Set modality to NONE
+        // dialogStage.initOwner(fullPageBorderPane.getScene().getWindow()); // Do not set the owner
+
         BorderPane borderPane = new BorderPane();
         borderPane.setTop(new Label("Copy/Paste tab-separated list of students' matno and name (e.g. from Excel), one student per line. Optionally name separated in two columns."));
         TextArea students_textarea = new TextArea();
         borderPane.setCenter(students_textarea);
 
-        ButtonType importButtonType = new ButtonType("Import Students", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(importButtonType);
-
-        dialog.setResultConverter(dialogButton -> students_textarea.getText());
-
-        dialog.getDialogPane().setContent(borderPane);
-        Platform.runLater(() -> students_textarea.requestFocus());
-
-        Optional<String> result = dialog.showAndWait();
-        if (result.isPresent()) {
-            for (String line : result.get().split("\n")) {
+        Button importButton = new Button("Import Students");
+        importButton.setOnAction(e -> {
+            String[] lines = students_textarea.getText().split("\n");
+            for (String line : lines) {
                 String[] parts = line.split("\t");
                 if (parts.length < 2) {
                     continue;
@@ -863,13 +847,19 @@ public class Controller {
                     student.fusion(student_matno_autocomplete.get(student.getMatno()));
                     try {
                         SAM.db.persist(student);
-                    } catch (SQLException e) {
+                    } catch (SQLException ex) {
                         showError("Error setting student name: " + student);
                     }
                 }
                 listView_students.refresh();
             }
-        }
+            dialogStage.close();
+        });
+
+        borderPane.setBottom(importButton);
+        Scene dialogScene = new Scene(borderPane, 400, 300);
+        dialogStage.setScene(dialogScene);
+        dialogStage.show();
     }
 
     public void exportStudents(ActionEvent actionEvent) {
@@ -879,7 +869,10 @@ public class Controller {
         fileChooser.setInitialFileName("grades.csv");
         fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
 
-        File selectedFile = fileChooser.showSaveDialog(fullPageBorderPane.getScene().getWindow());
+        Stage fileChooserStage = new Stage();
+        fileChooserStage.initModality(Modality.NONE);
+
+        File selectedFile = fileChooser.showSaveDialog(fileChooserStage);
         if (selectedFile == null) {
             return;
         }
@@ -888,15 +881,17 @@ public class Controller {
         if (!uri.toString().endsWith(".csv") && !uri.toString().endsWith(".txt")) {
             try {
                 uri = new URI(uri.toString() + ".csv");
-            } catch (URISyntaxException e) {
+            } catch (URISyntaxException ex) {
+                showError("Invalid file URI: " + ex.getMessage());
+                return;
             }
         }
         CSVExporter csvExporter = new CSVExporter();
         try {
             csvExporter.exportCSV(Paths.get(uri));
-        } catch (Exception e) {
-            showError("CSV-Export Error: " + e.getMessage());
-            e.printStackTrace();
+        } catch (Exception ex) {
+            showError("CSV-Export Error: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
@@ -907,7 +902,10 @@ public class Controller {
         fileChooser.setInitialFileName("feedback.html");
         fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
 
-        File selectedFile = fileChooser.showSaveDialog(fullPageBorderPane.getScene().getWindow());
+        Stage fileChooserStage = new Stage();
+        fileChooserStage.initModality(Modality.NONE); // Set modality to NONE
+
+        File selectedFile = fileChooser.showSaveDialog(fileChooserStage);
         if (selectedFile == null) {
             return;
         }
@@ -917,6 +915,8 @@ public class Controller {
             try {
                 uri = new URI(uri.toString() + ".html");
             } catch (URISyntaxException e) {
+                showError("Invalid file URI: " + e.getMessage());
+                return;
             }
         }
 

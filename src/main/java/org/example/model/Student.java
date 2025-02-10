@@ -33,13 +33,16 @@ public class Student implements Comparable<Student> {
 
         /* set student's pages */
         this.pages = new LinkedHashMap<>();
+
         try {
             Files.newDirectoryStream(SAM.getPathFromConfigFile().resolve(""+this.getId())).forEach((Path p) -> {
                 Page page = new Page(p);
                 this.pages.put(page.getPageNo(), page);
             });
         } catch (IOException e) {
-            System.out.println("Number of students and number of imported pages doesnt match. File " + e.getMessage() + " doesnt match any student");
+            //System.out.println("Number of students and number of imported pages doesnt match. File " + e.getMessage() + " doesnt match any student");
+            //it's ok, if not for all students a folder exists
+            //that's the case for imported students before matching them with their exams
         }
     }
 

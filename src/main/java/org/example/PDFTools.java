@@ -5,24 +5,34 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.common.HybridBinarizer;
 import com.google.zxing.multi.GenericMultipleBarcodeReader;
 import com.google.zxing.multi.MultipleBarcodeReader;
+import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 import org.example.model.Student;
 
-import java.awt.*;
+import java.awt.Graphics2D;
+import java.awt.Color;
+import java.util.List;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class PDFTools {
-    public static void splitPDF(File pdffile, int numpages) throws IOException {
+    public static int numPDFpages(File pdffile) throws IOException {
+        PDDocument document = PDDocument.load(pdffile);
+        int num_pages = document.getNumberOfPages();
+        document.close();
+        return num_pages;
+    }
+
+    public static void splitPDF(File pdffile, int numpages, Consumer<Double> progressConsumer) throws IOException {
         PDDocument document = PDDocument.load(pdffile);
         PDFRenderer pdfRenderer = new PDFRenderer(document);
         int exam_id;
@@ -64,7 +74,7 @@ public class PDFTools {
             Path path = folder.resolve(""+ page_id + ".jpg");
             ImageIOUtil.writeImage(bim, path.toString(), 300);
 
-            Controller.setProgress(1.0*page / document.getNumberOfPages());
+            progressConsumer.accept(1.0*page / document.getNumberOfPages());
             System.out.printf("Create file %d/%d: %s (%.1f°)\n", page+1, document.getNumberOfPages(), path, degree);
         }
         document.close();
@@ -104,5 +114,16 @@ public class PDFTools {
         }
         System.out.println("No QR Code found");
         return 0.0;
+    }
+
+    public static void mergePDFs(List<File> pdfNamesList, File outputFile) throws IOException {
+        PDFMergerUtility pdfMerger = new PDFMergerUtility();
+        pdfMerger.setDestinationFileName(outputFile.getAbsolutePath());
+
+        for (File pdf : pdfNamesList) {
+            pdfMerger.addSource(pdf);
+        }
+        pdfMerger.mergeDocuments(null);
+        System.out.println("Created File: "+outputFile.toString());
     }
 }
