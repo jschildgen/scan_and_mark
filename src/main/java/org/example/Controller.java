@@ -916,7 +916,12 @@ public class Controller {
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
         fileChooser.getExtensionFilters().add(extFilter);
         fileChooser.setInitialFileName("grades.csv");
-        fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
+        try {
+            fileChooser.setInitialDirectory(SAM.getPathFromConfigFile().toFile());
+        } catch (IOException e) {
+            showError(e.getMessage());
+            return;
+        }
 
         Stage fileChooserStage = new Stage();
         fileChooserStage.initModality(Modality.NONE);
@@ -949,7 +954,12 @@ public class Controller {
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("HTML files (*.html)", "*.html");
         fileChooser.getExtensionFilters().add(extFilter);
         fileChooser.setInitialFileName("feedback.html");
-        fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
+        try {
+            fileChooser.setInitialDirectory(SAM.getPathFromConfigFile().toFile());
+        } catch (IOException e) {
+            showError(e.getMessage());
+            return;
+        }
 
         Stage fileChooserStage = new Stage();
         fileChooserStage.initModality(Modality.NONE); // Set modality to NONE
