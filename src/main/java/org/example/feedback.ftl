@@ -121,7 +121,7 @@
       </div>
     </#list>
   </div>
-  <p>${student.student}, PDFPage=${student.student.pdfpage!}, Percent:${student.student.prcnt!} %</p>
+  <p>${student.student}, PDFPage=${student.student.pdfpage!} (${student.student.prcnt!}%)</p>
   </#list>
 </body>
 <script type="text/javascript">

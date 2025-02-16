@@ -49,6 +49,9 @@ public class FeedbackExporter {
         List<Exercise> exercises = SAM.db.getExercises();
 
         for(Student student : SAM.db.getStudents()) {
+            if(student.getPages().isEmpty()) {
+                continue;
+            }
             Map<String, Object> student_obj = new LinkedHashMap<>();
             student_obj.put("student", student);
             BigDecimal student_points = BigDecimal.ZERO;

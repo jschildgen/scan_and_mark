@@ -15,6 +15,7 @@ public class CSVExporter {
     public void exportCSV(Path path) throws SQLException, IOException {
         FileWriter writer = new FileWriter(path.toString());
         CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+        int i = 0;
         for (Map.Entry<Student, BigDecimal> entry : SAM.db.getStudentsWithPoints().entrySet()) {
             Student student = entry.getKey();
             BigDecimal points = entry.getValue();
