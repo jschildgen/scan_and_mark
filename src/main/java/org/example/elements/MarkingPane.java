@@ -95,6 +95,12 @@ public class MarkingPane extends BorderPane {
 
             feedback_field.setOnKeyReleased(e -> {
                 if(e.getCode().toString().equals("ENTER")) {
+                    // Remove ", " at the end of feedback
+                    if(answer.getFeedback() != null && answer.getFeedback().endsWith(", ")) {
+                        answer.setFeedback(answer.getFeedback().substring(0, answer.getFeedback().length()-2));
+                        feedback_field.setValue(answer.getFeedback());
+                    }
+
                     // Feedback text can contain multiple negative numbers in parentheses (-1)
                     // E.g., This is wrong (-1) and this is also wrong (-0.5)  => set points to max-1.5
                     if(answer.getFeedback() != null && answer.getFeedback().contains("(")) {
