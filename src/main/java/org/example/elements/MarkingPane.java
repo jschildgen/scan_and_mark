@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MarkingPane extends BorderPane {
     private Consumer<Answer> onAnswer;
@@ -90,6 +92,20 @@ public class MarkingPane extends BorderPane {
 
         List<Button> points_buttons = new ArrayList<>();
         if(exercise.getPoints() != null) {
+
+            feedback_field.setOnKeyReleased(e -> {
+                if(e.getCode().toString().equals("ENTER")) {
+                    // Feedback text can contain multiple negative numbers in parentheses (-1)
+                    // E.g., This is wrong (-1) and this is also wrong (-0.5)  => set points to max-1.5
+                    if(answer.getFeedback() != null && answer.getFeedback().contains("(")) {
+                        BigDecimal points = exercise.getPoints().add(sumNegativeNumbers(answer.getFeedback()));
+                        points_field.setText(""+points);
+                        pointsChangedHandler.handle(e);
+                    }
+
+                }
+            });
+
             for (BigDecimal i = BigDecimal.ZERO; i.compareTo(exercise.getPoints()) < 0; i = i.add(BigDecimal.ONE)) {
                 Button button = new Button("" + i);
                 button.setOnAction(e -> {
@@ -137,5 +153,18 @@ public class MarkingPane extends BorderPane {
 
     public void setOnAnswer(Consumer<Answer> onAnswer) {
         this.onAnswer = onAnswer;
+    }
+
+    public static BigDecimal sumNegativeNumbers(String input) {
+        Pattern pattern = Pattern.compile("\\(-([0-9]+[.,]?[0-9]*)\\)");
+        Matcher matcher = pattern.matcher(input);
+        BigDecimal sum = BigDecimal.ZERO;
+
+        while (matcher.find()) {
+            String number = matcher.group(1).replace(',', '.');
+            sum = sum.subtract(new BigDecimal(number));
+        }
+
+        return sum;
     }
 }

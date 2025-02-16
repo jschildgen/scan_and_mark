@@ -23,7 +23,8 @@
                     </Menu>
                     <Menu text="Import">
                         <items>
-                            <MenuItem text="Import Students" onAction="#importStudents"/>
+                            <MenuItem text="Import Students from HiS Excel files" onAction="#importStudentsHISinOne"/>
+                            <MenuItem text="Import Students from CSV Input" onAction="#importStudents"/>
                         </items>
                     </Menu>
                     <Menu text="Export">
@@ -91,12 +92,12 @@
                             </left>
                             <right>
                                 <HBox alignment="CENTER_RIGHT">
-                                    <RadioButton text="All () " selected="true" onAction="#filterAnswers" fx:id="filter_answers_all">
+                                    <RadioButton text="All () " onAction="#filterAnswers" fx:id="filter_answers_all">
                                         <toggleGroup>
                                             <ToggleGroup fx:id="filter_answers"/>
                                         </toggleGroup>
                                     </RadioButton>
-                                    <RadioButton text="Not marked () " onAction="#filterAnswers" fx:id="filter_answers_notmarked">
+                                    <RadioButton text="Not marked () " selected="true" onAction="#filterAnswers" fx:id="filter_answers_notmarked">
                                         <toggleGroup>
                                             <fx:reference source="filter_answers"/>
                                         </toggleGroup>

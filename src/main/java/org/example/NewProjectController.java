@@ -134,7 +134,6 @@ public class NewProjectController {
             fileChooser.setInitialDirectory(previous_choice_directory);
         }
 
-        // Ermöglicht die Auswahl mehrerer Dateien
         List<File> files = fileChooser.showOpenMultipleDialog(null);
 
         if (files == null || files.isEmpty()) {

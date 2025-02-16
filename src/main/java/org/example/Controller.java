@@ -14,7 +14,6 @@ import com.opencsv.CSVReader;
 
 import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -25,7 +24,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -40,6 +38,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.*;
 import org.example.elements.MarkingPane;
+import org.example.importexport.HISinOneExcelStudentsImporter;
+import org.example.importexport.StudentImporter;
 import org.example.model.Answer;
 import org.example.model.Exercise;
 import org.example.model.Page;
@@ -72,10 +72,53 @@ public class Controller {
         }
     }
 
-    private static enum AnswerFilter {ALL, NOT_MARKTED, COMPLETED}
+    public void importStudentsHISinOne(ActionEvent actionEvent) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
+
+        List<File> files = fileChooser.showOpenMultipleDialog(null);
+
+        if (files == null || files.isEmpty()) {
+            return;
+        }
+
+        for (File file : files) {
+            if (!HISinOneExcelStudentsImporter.format_is_valid(file)) {
+                Controller.showError("Invalid Excel file format: " + file.getName());
+                continue;
+            }
+        }
+
+        StudentImporter studentImporter = new HISinOneExcelStudentsImporter(files);
+        try {
+            int num_imported = 0;
+            for(Student student : studentImporter.import_students()) {
+                SAM.db.persist(student);
+                num_imported++;
+            }
+            Controller.showInfo("Imported " + num_imported + " students.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            Controller.showError(e.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Controller.showError(e.getMessage());
+        }
+        this.refresh();
+    }
+
+    private static void showInfo(String s) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Information");
+        alert.setHeaderText(null);
+        alert.setContentText(s);
+        alert.showAndWait();
+    }
+
+    private static enum AnswerFilter {ALL, NOT_MARKED, COMPLETED}
 
     ;
-    private AnswerFilter answerFilter = AnswerFilter.ALL;
+    private AnswerFilter answerFilter = AnswerFilter.NOT_MARKED;
 
     private static Controller controllerInstance = null;
 
@@ -382,7 +425,7 @@ public class Controller {
         for (Student student : list_students_random) {
             try {
                 Answer answer = SAM.db.getAnswer(student, exercise);
-                if (answerFilter == AnswerFilter.NOT_MARKTED && answer.getPoints() != null) {
+                if (answerFilter == AnswerFilter.NOT_MARKED && answer.getPoints() != null) {
                     continue;
                 }
                 if (answerFilter == AnswerFilter.COMPLETED && answer.getPoints() == null) {
@@ -604,6 +647,12 @@ public class Controller {
 
 
     public void changeStudent(KeyEvent keyEvent) throws SQLException {
+        if (keyEvent.getCode() == KeyCode.ENTER) {
+            listView_students.getSelectionModel().select(0);
+            clickStudent(null);
+            return;
+        }
+
         Student student = (Student) listView_students.getSelectionModel().getSelectedItem();
 
         student.setMatno(studentMatno.getText().isBlank() ? "" : studentMatno.getText());
@@ -938,7 +987,7 @@ public class Controller {
     public void filterAnswers(ActionEvent actionEvent) {
         RadioButton radioButton = (RadioButton) filter_answers.getSelectedToggle();
         this.answerFilter = switch (radioButton.getId()) {
-            case "filter_answers_notmarked" -> AnswerFilter.NOT_MARKTED;
+            case "filter_answers_notmarked" -> AnswerFilter.NOT_MARKED;
             case "filter_answers_completed" -> AnswerFilter.COMPLETED;
             default -> AnswerFilter.ALL;
         };
