@@ -72,6 +72,10 @@ public class Controller {
         }
     }
 
+    public void openproject(ActionEvent actionEvent){
+        //change to new config
+    }
+
     public void importStudentsHISinOne(ActionEvent actionEvent) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Excel Files", "*.xlsx"));
@@ -164,6 +168,14 @@ public class Controller {
     @FXML
     CheckBox limit_show_answers;
     @FXML
+    Button prevPag;
+    @FXML
+    Button nextPag;
+    @FXML
+    Label pageLabel;
+    private int currentPage = 1;
+    private final int pageSize = 10;
+    @FXML
     MenuBar menuBar = new MenuBar();
 
     ObservableList<Student> list_students = FXCollections.observableArrayList();
@@ -182,6 +194,11 @@ public class Controller {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
+
+        updatePage();
+        prevPag.setOnAction(event -> changePage(-1));
+        nextPag.setOnAction(event -> changePage(1));
+
         listView_exercises.setCellFactory(cell -> new ListCell<Exercise>() {
             @Override
             protected void updateItem(Exercise exercise, boolean empty) {
@@ -237,6 +254,8 @@ public class Controller {
                     listView_students.getSelectionModel().select(0);
                     clickStudent(null);
                 }
+
+                updatePage();
 
                 list_exercises.clear();
                 try {
@@ -1006,6 +1025,27 @@ public class Controller {
 
     public static void setProgress(double progress) {
         Controller.controllerInstance.progress.setProgress(progress);
+    }
+
+    private void changePage(int direction) {
+        int newPage = currentPage + direction;
+        int totalPages = (int) Math.ceil((double) list_students.size() / pageSize);
+
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            updatePage();
+        }
+    }
+
+    private void updatePage() {
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, list_students.size());
+
+        if (list_students.isEmpty()) {
+            listView_students.setItems(FXCollections.observableArrayList());
+        } else {
+            listView_students.setItems(FXCollections.observableArrayList(list_students.subList(fromIndex, toIndex)));
+        }
     }
 
 }
