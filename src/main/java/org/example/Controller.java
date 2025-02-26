@@ -84,13 +84,24 @@ public class Controller {
             Path selectedPath = selectedDirectory.toPath();
             try {
                 SAM.updatePathInConfigFile(selectedPath);
-                try {
-                    Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
-                    Stage stage = (Stage) window;
-                    stage.setScene(new Scene(root));
-                    stage.show();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                File dbSqlite = new File(selectedDirectory, "db.sqlite3");
+                File dbConf = new File(selectedDirectory, "db.conf");
+
+                if (dbSqlite.exists() || dbConf.exists()) {
+                    try {
+                        Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+                        Stage stage = (Stage) window;
+                        stage.setScene(new Scene(root));
+                        stage.show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Invalid Project");
+                    alert.setHeaderText("This is not a valid SAM project.");
+                    alert.setContentText("The project folder must contain either db.sqlite3 or db.conf.");
+                    alert.showAndWait();
                 }
             } catch (IOException e) {
                 e.printStackTrace();
