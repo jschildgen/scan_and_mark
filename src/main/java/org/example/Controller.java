@@ -166,8 +166,6 @@ public class Controller {
     @FXML
     RadioButton filter_answers_completed;
     @FXML
-    CheckBox limit_show_answers;
-    @FXML
     Button prevPag;
     @FXML
     Button nextPag;
@@ -452,9 +450,6 @@ public class Controller {
                 }
 
                 num_students++;
-                if (limit_show_answers.isSelected() && num_students > 10) {
-                    break;
-                }
 
                 MarkingPane marking_pane = new MarkingPane(answer, feedback_map, feedback_list);
                 marking_pane.setOnAnswer(student_answer -> refreshProgress());
@@ -615,7 +610,13 @@ public class Controller {
         double[] point2 = {mouseEvent.getX(), mouseEvent.getY()};
         point1 = windowPosToImagePos(point1);
         point2 = windowPosToImagePos(point2);
+        double imageWidth = fullPageImageView.getImage().getWidth();
+        double imageHeight = fullPageImageView.getImage().getHeight();
         final double[][] pos = {point1, point2};
+        pos[0][0] = Math.max(0, Math.min(pos[0][0], imageWidth));
+        pos[0][1] = Math.max(0, Math.min(pos[0][1], imageHeight));
+        pos[1][0] = Math.max(0, Math.min(pos[1][0], imageWidth));
+        pos[1][1] = Math.max(0, Math.min(pos[1][1], imageHeight));
 
         if (pos[0][0] == pos[1][0] && pos[0][1] == pos[1][1]) {
             /* no drag, just click (on rectangle?) */
