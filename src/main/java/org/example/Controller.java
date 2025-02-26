@@ -19,6 +19,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -72,9 +73,31 @@ public class Controller {
         }
     }
 
-    public void openproject(ActionEvent actionEvent){
-        //change to new config
+    public void openproject(ActionEvent actionEvent) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Choose project folder");
+
+        Window window = ((MenuItem) actionEvent.getSource()).getParentPopup().getOwnerWindow();
+        File selectedDirectory = directoryChooser.showDialog(window);
+
+        if (selectedDirectory != null) {
+            Path selectedPath = selectedDirectory.toPath();
+            try {
+                SAM.updatePathInConfigFile(selectedPath);
+                try {
+                    Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+                    Stage stage = (Stage) window;
+                    stage.setScene(new Scene(root));
+                    stage.show();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
+
 
     public void importStudentsHISinOne(ActionEvent actionEvent) {
         FileChooser fileChooser = new FileChooser();
