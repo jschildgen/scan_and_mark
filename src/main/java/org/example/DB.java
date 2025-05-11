@@ -290,6 +290,27 @@ public class DB {
         return null;
     }
 
+    public Student getStudentByMatno(String matno) throws SQLException {
+        String query = "SELECT * FROM students WHERE matno = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, matno);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Student student = new Student(rs.getInt("sid"), rs.getString("matno"));
+                    student.setName1(rs.getString("name1"));
+                    student.setName2(rs.getString("name2"));
+                    student.setPdfpage(rs.getInt("pdfpage"));
+                    student.setPrcnt(rs.getInt("prcnt"));
+                    return student;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+        return null;
+    }
+
     public Exercise getExercise(int eid) throws SQLException {
         String query = "SELECT * FROM exercises WHERE eid = ?";
         try (PreparedStatement stmt = conn.prepareStatement(query)) {
@@ -533,4 +554,6 @@ public class DB {
             pstmt.executeUpdate();
         }
     }
+
+
 }

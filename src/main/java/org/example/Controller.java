@@ -19,7 +19,6 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -40,6 +39,7 @@ import javafx.scene.text.Text;
 import javafx.stage.*;
 import org.example.elements.MarkingPane;
 import org.example.importexport.HISinOneExcelStudentsImporter;
+import org.example.importexport.MoodleFeedbackExporter;
 import org.example.importexport.StudentImporter;
 import org.example.model.Answer;
 import org.example.model.Exercise;
@@ -291,17 +291,13 @@ public class Controller {
                 });
                 refreshTotalPoints();
                 refreshProgress();
-
-                System.out.println(list_students.size() + " students loaded");
-                System.out.println(listView_students.getItems().size() + " students in list");
-
             }
         } catch (Exception e){
             e.printStackTrace();
         }
     }
 
-    public void importELOStudents() throws IOException, CsvException, SQLException {
+    public void importMoodleStudents() throws IOException, CsvException, SQLException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setInitialDirectory(SAM.getBase_dir().toFile());
 
@@ -312,70 +308,14 @@ public class Controller {
         if (selectedFile == null) {
             return;
         }
-        String outputFile = SAM.getPathFromConfigFile() + "/studentsData.csv";
-        try (CSVReader reader = new CSVReader(new FileReader(selectedFile));
-             CSVWriter writer = new CSVWriter(new FileWriter(outputFile),
-                     CSVWriter.DEFAULT_SEPARATOR,
-                     CSVWriter.NO_QUOTE_CHARACTER,
-                     CSVWriter.DEFAULT_ESCAPE_CHARACTER,
-                     CSVWriter.DEFAULT_LINE_END)) {
-            List<Student> students = SAM.db.getStudents();
-            List<Exercise> exercises = SAM.db.getExercises();
-            List<String[]> rows = reader.readAll();
-            if (rows.isEmpty()) {
-                return;
-            }
-            String[] header = rows.get(0);
-            int emailIndex = -1;
-            int antwort1Index = -1;
 
-            for (int i = 0; i < header.length; i++) {
-                if (header[i].equalsIgnoreCase("E-Mail-Adresse")) {
-                    emailIndex = i;
-                } else if (header[i].equalsIgnoreCase("Antwort 1")) {
-                    antwort1Index = i;
-                }
-            }
-            if (emailIndex == -1 || antwort1Index == -1) {
-                return;
-            }
-
-            String[] newHeader = {"email", "points", "feedback_text"};
-            writer.writeNext(newHeader);
-
-            for (int i = 1; i < rows.size(); i++) {
-                String[] row = rows.get(i);
-                String email = row[emailIndex];
-                String antwort1 = row[antwort1Index];
-                Student matchedStudent = students.stream()
-                        .filter(student -> student.getMatno().equals(antwort1))
-                        .findFirst()
-                        .orElse(null);
-                if (matchedStudent != null) {
-                    int totalPoints = 0;
-                    StringBuilder feedbackBuilder = new StringBuilder();
-                    for (Exercise exercise : exercises) {
-                        Answer answer = SAM.db.getAnswer(matchedStudent, exercise);
-                        if (answer.getPoints() != null) {
-                            totalPoints += answer.getPoints().intValue();
-                        }
-                        if (answer.getFeedback() != null && !answer.getFeedback().isEmpty()) {
-                            feedbackBuilder.append(answer.getFeedback()).append(" ");
-                        }
-                    }
-                    String feedback = feedbackBuilder.toString().trim();
-                    String[] newRow = {email, String.valueOf(totalPoints), feedback};
-                    writer.writeNext(newRow);
-                }
-            }
-            JOptionPane.showMessageDialog(null,
-                    "The CSV file was created successfully: " + outputFile,
-                    "Success",
-                    JOptionPane.INFORMATION_MESSAGE);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        MoodleFeedbackExporter moodleFeedbackExporter = new MoodleFeedbackExporter(selectedFile);
+        String output_filename = moodleFeedbackExporter.exportFeedback();
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Moodle Feedback Export");
+        alert.setHeaderText("Moodle feedback exported successfully");
+        alert.setContentText("Feedback exported to: " + output_filename);
+        alert.showAndWait();
     }
 
     public void clickStudent(MouseEvent mouseEvent) {

@@ -36,7 +36,7 @@
                     </Menu>
                     <Menu text="Moodle">
                         <items>
-                            <MenuItem text="Export student point to Moodle" onAction="#importELOStudents" />
+                            <MenuItem text="Export student point to Moodle" onAction="#importMoodleStudents" />
                         </items>
                     </Menu>
                 </menus>
