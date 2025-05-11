@@ -19,6 +19,7 @@
                     <Menu text="File">
                         <items>
                             <MenuItem text="New Project" onAction="#newproject" />
+                            <MenuItem text="Open Project" onAction="#openproject" />
                         </items>
                     </Menu>
                     <Menu text="Import">
@@ -125,7 +126,11 @@
         <VBox prefWidth="100">
             <Label text="Exercises"></Label>
             <ListView VBox.vgrow="ALWAYS" fx:id="listView_exercises" onMouseClicked="#clickExercise"></ListView>
-            <CheckBox fx:id="limit_show_answers" text="LIMIT 10" selected="true"></CheckBox>
+            <Label fx:id="pageLabel" text="Page: 1"/>
+            <HBox spacing="10" alignment="CENTER" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml">
+                <Button text="&lt;" fx:id="prevPag"/>
+                <Button text="&gt;" fx:id="nextPag"/>
+            </HBox>
             <TextFlow><Text text="Σ Points: "/><Text fx:id="total_points" text="995.5"/></TextFlow>
         </VBox>
     </right>

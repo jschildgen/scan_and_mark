@@ -19,6 +19,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -71,6 +72,43 @@ public class Controller {
             showError("Error loading New Project Wizard: " + e.getMessage());
         }
     }
+
+    public void openproject(ActionEvent actionEvent) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Choose project folder");
+
+        Window window = ((MenuItem) actionEvent.getSource()).getParentPopup().getOwnerWindow();
+        File selectedDirectory = directoryChooser.showDialog(window);
+
+        if (selectedDirectory != null) {
+            Path selectedPath = selectedDirectory.toPath();
+            try {
+                SAM.updatePathInConfigFile(selectedPath);
+                File dbSqlite = new File(selectedDirectory, "db.sqlite3");
+                File dbConf = new File(selectedDirectory, "db.conf");
+
+                if (dbSqlite.exists() || dbConf.exists()) {
+                    try {
+                        Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
+                        Stage stage = (Stage) window;
+                        stage.setScene(new Scene(root));
+                        stage.show();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Invalid Project");
+                    alert.setHeaderText("This is not a valid SAM project.");
+                    alert.setContentText("The project folder must contain either db.sqlite3 or db.conf.");
+                    alert.showAndWait();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public void importStudentsHISinOne(ActionEvent actionEvent) {
         FileChooser fileChooser = new FileChooser();
@@ -162,7 +200,13 @@ public class Controller {
     @FXML
     RadioButton filter_answers_completed;
     @FXML
-    CheckBox limit_show_answers;
+    Button prevPag;
+    @FXML
+    Button nextPag;
+    @FXML
+    Label pageLabel;
+    private int currentPage = 1;
+    private final int pageSize = 10;
     @FXML
     MenuBar menuBar = new MenuBar();
 
@@ -182,6 +226,11 @@ public class Controller {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
+
+        updatePage();
+        prevPag.setOnAction(event -> changePage(-1));
+        nextPag.setOnAction(event -> changePage(1));
+
         listView_exercises.setCellFactory(cell -> new ListCell<Exercise>() {
             @Override
             protected void updateItem(Exercise exercise, boolean empty) {
@@ -237,6 +286,8 @@ public class Controller {
                     listView_students.getSelectionModel().select(0);
                     clickStudent(null);
                 }
+
+                updatePage();
 
                 list_exercises.clear();
                 try {
@@ -433,9 +484,6 @@ public class Controller {
                 }
 
                 num_students++;
-                if (limit_show_answers.isSelected() && num_students > 10) {
-                    break;
-                }
 
                 MarkingPane marking_pane = new MarkingPane(answer, feedback_map, feedback_list);
                 marking_pane.setOnAnswer(student_answer -> refreshProgress());
@@ -596,7 +644,13 @@ public class Controller {
         double[] point2 = {mouseEvent.getX(), mouseEvent.getY()};
         point1 = windowPosToImagePos(point1);
         point2 = windowPosToImagePos(point2);
+        double imageWidth = fullPageImageView.getImage().getWidth();
+        double imageHeight = fullPageImageView.getImage().getHeight();
         final double[][] pos = {point1, point2};
+        pos[0][0] = Math.max(0, Math.min(pos[0][0], imageWidth));
+        pos[0][1] = Math.max(0, Math.min(pos[0][1], imageHeight));
+        pos[1][0] = Math.max(0, Math.min(pos[1][0], imageWidth));
+        pos[1][1] = Math.max(0, Math.min(pos[1][1], imageHeight));
 
         if (pos[0][0] == pos[1][0] && pos[0][1] == pos[1][1]) {
             /* no drag, just click (on rectangle?) */
@@ -1006,6 +1060,27 @@ public class Controller {
 
     public static void setProgress(double progress) {
         Controller.controllerInstance.progress.setProgress(progress);
+    }
+
+    private void changePage(int direction) {
+        int newPage = currentPage + direction;
+        int totalPages = (int) Math.ceil((double) list_students.size() / pageSize);
+
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            updatePage();
+        }
+    }
+
+    private void updatePage() {
+        int fromIndex = (currentPage - 1) * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, list_students.size());
+
+        if (list_students.isEmpty()) {
+            listView_students.setItems(FXCollections.observableArrayList());
+        } else {
+            listView_students.setItems(FXCollections.observableArrayList(list_students.subList(fromIndex, toIndex)));
+        }
     }
 
 }
