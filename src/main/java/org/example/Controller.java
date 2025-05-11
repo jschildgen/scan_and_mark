@@ -200,13 +200,7 @@ public class Controller {
     @FXML
     RadioButton filter_answers_completed;
     @FXML
-    Button prevPag;
-    @FXML
-    Button nextPag;
-    @FXML
-    Label pageLabel;
-    private int currentPage = 1;
-    private final int pageSize = 10;
+    CheckBox limit_show_answers;
     @FXML
     MenuBar menuBar = new MenuBar();
 
@@ -214,7 +208,7 @@ public class Controller {
     ObservableList<Page> list_pages = FXCollections.observableArrayList();
     ObservableList<Exercise> list_exercises = FXCollections.observableArrayList();
 
-    public Map<String, Student> student_matno_autocomplete = new HashMap<>();
+    public static Map<String, Student> student_matno_autocomplete = new HashMap<>();
 
     private double[] image_click = new double[2];
 
@@ -226,10 +220,6 @@ public class Controller {
         listView_students.setItems(list_students);
         listView_pages.setItems(list_pages);
         listView_exercises.setItems(list_exercises);
-
-        updatePage();
-        prevPag.setOnAction(event -> changePage(-1));
-        nextPag.setOnAction(event -> changePage(1));
 
         listView_exercises.setCellFactory(cell -> new ListCell<Exercise>() {
             @Override
@@ -282,22 +272,18 @@ public class Controller {
                     showError("DB Error: getStudents");
                 }
 
-                if (list_students.size() > 0) {
+                if (!list_students.isEmpty()) {
                     listView_students.getSelectionModel().select(0);
                     clickStudent(null);
                 }
 
-                updatePage();
-
                 list_exercises.clear();
                 try {
-                    for (Exercise exercise : SAM.db.getExercises()) {
-                        list_exercises.add(exercise);
-                    }
+                    list_exercises.addAll(SAM.db.getExercises());
                 } catch (SQLException e) {
                     showError("DB Error: getExercises");
                 }
-                FXCollections.sort(list_exercises, (a, b) -> a.compareTo(b));
+                FXCollections.sort(list_exercises, Exercise::compareTo);
 
                 fullPageImagePane.widthProperty().addListener((obs, oldVal, newVal) -> {
                     fullPageImageView.setFitWidth(newVal.doubleValue());
@@ -305,6 +291,9 @@ public class Controller {
                 });
                 refreshTotalPoints();
                 refreshProgress();
+
+                System.out.println(list_students.size() + " students loaded");
+                System.out.println(listView_students.getItems().size() + " students in list");
 
             }
         } catch (Exception e){
@@ -484,6 +473,9 @@ public class Controller {
                 }
 
                 num_students++;
+                if (limit_show_answers.isSelected() && num_students > 10) {
+                    break;
+                }
 
                 MarkingPane marking_pane = new MarkingPane(answer, feedback_map, feedback_list);
                 marking_pane.setOnAnswer(student_answer -> refreshProgress());
@@ -722,6 +714,7 @@ public class Controller {
         try {
             SAM.db.persist(student);
         } catch (SQLException e) {
+            e.printStackTrace();
             showError("DB Error: " + student);
         }
         FXCollections.sort(list_students, (a, b) -> a.compareTo(b));
@@ -942,7 +935,6 @@ public class Controller {
                     student.setName2(parts[2]);
                 }
                 student_matno_autocomplete.put(student.getMatno(), student);
-                list_students.add(student);
             }
 
             for (Student student : list_students) {
@@ -1061,26 +1053,4 @@ public class Controller {
     public static void setProgress(double progress) {
         Controller.controllerInstance.progress.setProgress(progress);
     }
-
-    private void changePage(int direction) {
-        int newPage = currentPage + direction;
-        int totalPages = (int) Math.ceil((double) list_students.size() / pageSize);
-
-        if (newPage >= 1 && newPage <= totalPages) {
-            currentPage = newPage;
-            updatePage();
-        }
-    }
-
-    private void updatePage() {
-        int fromIndex = (currentPage - 1) * pageSize;
-        int toIndex = Math.min(fromIndex + pageSize, list_students.size());
-
-        if (list_students.isEmpty()) {
-            listView_students.setItems(FXCollections.observableArrayList());
-        } else {
-            listView_students.setItems(FXCollections.observableArrayList(list_students.subList(fromIndex, toIndex)));
-        }
-    }
-
 }

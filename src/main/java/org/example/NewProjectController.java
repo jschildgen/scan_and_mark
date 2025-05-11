@@ -261,7 +261,7 @@ public class NewProjectController {
             thread.start();
 
             for (Student student : students) {
-                SAM.db.persist(student);
+                Controller.student_matno_autocomplete.put(student.getMatno(), student);
             }
         } catch (Exception e) {
             e.printStackTrace();
