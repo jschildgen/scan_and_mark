@@ -126,7 +126,14 @@
         <VBox prefWidth="100">
             <Label text="Exercises"></Label>
             <ListView VBox.vgrow="ALWAYS" fx:id="listView_exercises" onMouseClicked="#clickExercise"></ListView>
-            <CheckBox fx:id="limit_show_answers" text="LIMIT 10" selected="true"></CheckBox>
+
+            <HBox alignment="CENTER" spacing="10">
+                <Label text="" fx:id="pageLabel"/>
+            </HBox>
+            <HBox alignment="CENTER" spacing="10">
+                <Button text="&lt;" fx:id="pagination_backward" onAction="#pagination" disable="true"/>
+                <Button text="&gt;" fx:id="pagination_forward" onAction="#pagination" disable="true" />
+            </HBox>
             <TextFlow><Text text="Σ Points: "/><Text fx:id="total_points" text="995.5"/></TextFlow>
         </VBox>
     </right>

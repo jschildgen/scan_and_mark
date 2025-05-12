@@ -50,7 +50,71 @@ import javax.swing.*;
 
 public class Controller {
     private static boolean FULL_WIDTH_EXERCISES = true;
+    private static int PAGINATION_PER_PAGE = 10;
+
     public SplitPane examsSplitPane;
+    public Label pageLabel;
+    public Button pagination_backward;
+    public Button pagination_forward;
+
+    private static enum AnswerFilter {ALL, NOT_MARKED, COMPLETED}
+
+    ;
+    private AnswerFilter answerFilter = AnswerFilter.NOT_MARKED;
+
+    private static Controller controllerInstance = null;
+
+    public ToggleGroup filter_answers;
+    @FXML
+    ProgressBar progress;
+    private static Tooltip progress_tooltip = null;
+    @FXML
+    VBox answers_list;
+
+    @FXML
+    TextField working_dir;
+    @FXML
+    ListView listView_students;
+    @FXML
+    ListView listView_pages;
+    @FXML
+    ListView listView_exercises;
+    @FXML
+    BorderPane fullPageBorderPane;
+    @FXML
+    ScrollPane answersScrollPane;
+    @FXML
+    Pane fullPageImagePane;
+    @FXML
+    ImageView fullPageImageView;
+    @FXML
+    TextField studentMatno;
+    @FXML
+    Label studentName;
+    @FXML
+    TextField exerciseLabel;
+    @FXML
+    TextField exercisePoints;
+    @FXML
+    Text total_points;
+    @FXML
+    RadioButton filter_answers_all;
+    @FXML
+    RadioButton filter_answers_notmarked;
+    @FXML
+    RadioButton filter_answers_completed;
+    @FXML
+    MenuBar menuBar = new MenuBar();
+
+    private int pagination_offset = 0;
+
+    ObservableList<Student> list_students = FXCollections.observableArrayList();
+    ObservableList<Page> list_pages = FXCollections.observableArrayList();
+    ObservableList<Exercise> list_exercises = FXCollections.observableArrayList();
+
+    public static Map<String, Student> student_matno_autocomplete = new HashMap<>();
+
+    private double[] image_click = new double[2];
 
     public void newproject(ActionEvent actionEvent) {
         Stage primaryStage = (Stage) examsSplitPane.getScene().getWindow();
@@ -153,64 +217,33 @@ public class Controller {
         alert.showAndWait();
     }
 
-    private static enum AnswerFilter {ALL, NOT_MARKED, COMPLETED}
+    public void pagination(ActionEvent actionEvent) {
+        int direction = 1;
+        if (actionEvent.getSource() instanceof Button button) {
+            if (button.getParent() instanceof HBox hbox) {
+                if (hbox.getChildren().indexOf((button)) == 0) {
+                    // If first button is clicked => go to previous page
+                    direction = -1;
+                }
+            }
+        }
 
-    ;
-    private AnswerFilter answerFilter = AnswerFilter.NOT_MARKED;
+        pagination_offset += direction * PAGINATION_PER_PAGE;
+        pagination_offset = Math.max(0, pagination_offset);
+        pagination_offset = Math.min(pagination_offset, list_students.size() - PAGINATION_PER_PAGE);
 
-    private static Controller controllerInstance = null;
+        refreshPaginationLabel();
 
-    public ToggleGroup filter_answers;
-    @FXML
-    ProgressBar progress;
-    private static Tooltip progress_tooltip = null;
-    @FXML
-    VBox answers_list;
+        clickExercise(null);
+    }
 
-    @FXML
-    TextField working_dir;
-    @FXML
-    ListView listView_students;
-    @FXML
-    ListView listView_pages;
-    @FXML
-    ListView listView_exercises;
-    @FXML
-    BorderPane fullPageBorderPane;
-    @FXML
-    ScrollPane answersScrollPane;
-    @FXML
-    Pane fullPageImagePane;
-    @FXML
-    ImageView fullPageImageView;
-    @FXML
-    TextField studentMatno;
-    @FXML
-    Label studentName;
-    @FXML
-    TextField exerciseLabel;
-    @FXML
-    TextField exercisePoints;
-    @FXML
-    Text total_points;
-    @FXML
-    RadioButton filter_answers_all;
-    @FXML
-    RadioButton filter_answers_notmarked;
-    @FXML
-    RadioButton filter_answers_completed;
-    @FXML
-    CheckBox limit_show_answers;
-    @FXML
-    MenuBar menuBar = new MenuBar();
+    private void refreshPaginationLabel() {
+        pageLabel.setText(""+(pagination_offset+1)+" - "+(pagination_offset+PAGINATION_PER_PAGE));
+        pagination_backward.setDisable(pagination_offset == 0);
+        pagination_forward.setDisable(pagination_offset + PAGINATION_PER_PAGE >= list_students.size());
+    }
 
-    ObservableList<Student> list_students = FXCollections.observableArrayList();
-    ObservableList<Page> list_pages = FXCollections.observableArrayList();
-    ObservableList<Exercise> list_exercises = FXCollections.observableArrayList();
 
-    public static Map<String, Student> student_matno_autocomplete = new HashMap<>();
-
-    private double[] image_click = new double[2];
 
     public static void refresh() {
         controllerInstance.initialize();
@@ -365,6 +398,12 @@ public class Controller {
 
 
     public void clickExercise(MouseEvent mouseEvent) {
+        if(mouseEvent != null) {
+            // Directly clicked on exercise (not through pagination)
+            pagination_offset = 0;
+            refreshPaginationLabel();
+        }
+
         Exercise exercise = (Exercise) listView_exercises.getSelectionModel().getSelectedItem();
         if (exercise == null) {
             return;
@@ -402,6 +441,7 @@ public class Controller {
         List<Student> list_students_random = new ArrayList<>(list_students);
         Collections.shuffle(list_students_random, new Random(random_seed));
 
+        int num_students_skipped = 0;
         for (Student student : list_students_random) {
             try {
                 Answer answer = SAM.db.getAnswer(student, exercise);
@@ -412,10 +452,15 @@ public class Controller {
                     continue;
                 }
 
-                num_students++;
-                if (limit_show_answers.isSelected() && num_students > 10) {
+                if (num_students_skipped < pagination_offset) {
+                    num_students_skipped++;
+                    continue;
+                }
+
+                if (num_students >= PAGINATION_PER_PAGE) {
                     break;
                 }
+                num_students++;
 
                 MarkingPane marking_pane = new MarkingPane(answer, feedback_map, feedback_list);
                 marking_pane.setOnAnswer(student_answer -> refreshProgress());
@@ -442,7 +487,10 @@ public class Controller {
                 answers_list.getChildren().add(error_label);
             }
             refreshProgress();
+            answersScrollPane.setVvalue(0);   // scroll to top
         }
+        pagination_forward.setDisable(num_students != PAGINATION_PER_PAGE);
+        pageLabel.setText("" + (pagination_offset + 1) + " - " + (pagination_offset + num_students));
     }
 
     public void changeExercise(KeyEvent keyEvent) {
@@ -987,6 +1035,8 @@ public class Controller {
             case "filter_answers_completed" -> AnswerFilter.COMPLETED;
             default -> AnswerFilter.ALL;
         };
+        pagination_offset = 0;
+        refreshPaginationLabel();
         clickExercise(null);
     }
 
