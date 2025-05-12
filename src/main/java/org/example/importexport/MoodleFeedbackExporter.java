@@ -46,22 +46,23 @@ public class MoodleFeedbackExporter {
                 throw new IOException("Input file contains no data.");
             }
             String[] header = rows.get(0);
-            int email_index = 2;
+            int username_index = 2;
             int matno_index = header.length-1;
 
-            String[] newHeader = {"email", "points", "feedback_text"};
+            String[] newHeader = {"username", "points", "feedback_text"};
             writer.writeNext(newHeader);
 
-            Set<String> emails = new HashSet<>();  // avoid duplicate emails
+            Set<String> usernames = new HashSet<>();  // avoid duplicate emails
 
             // For each student in input CSV file
             for (int i = 1; i < rows.size(); i++) {
                 String[] row = rows.get(i);
-                String email = row[email_index];
+                String username = row[username_index];
                 String matno = row[matno_index];
                 Student student = SAM.db.getStudentByMatno(matno);
                 if (student != null) {
-                    if (emails.contains(email)) { continue; }
+                    if (usernames.contains(username)) { continue; }
+                    usernames.add(username);
                     int totalPoints = 0;
 
                     StringBuilder feedback = new StringBuilder();
@@ -102,7 +103,7 @@ public class MoodleFeedbackExporter {
 
                     feedback.append("=> ").append(exam_incomplete ? "?" : student_points).append("/").append(exam_max_points);
 
-                    String[] newRow = {email, String.valueOf(totalPoints), feedback.toString()};
+                    String[] newRow = {username, String.valueOf(totalPoints), feedback.toString()};
                     writer.writeNext(newRow);
                 }
             }
