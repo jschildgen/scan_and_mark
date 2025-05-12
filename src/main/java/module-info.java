@@ -17,4 +17,6 @@ module org.example {
     opens org.example to javafx.fxml;
     exports org.example;
     exports org.example.model;
+    exports org.example.importexport;
+    opens org.example.importexport to javafx.fxml;
 }
