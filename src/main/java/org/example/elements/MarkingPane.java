@@ -51,7 +51,8 @@ public class MarkingPane extends BorderPane {
             }
             try {
                 BigDecimal points = new BigDecimal(points_field.getText());
-                if(points.compareTo(BigDecimal.ZERO) < 0            // negative points
+                if(exercise.getPoints() == null
+                || points.compareTo(BigDecimal.ZERO) < 0            // negative points
                 || points.compareTo(exercise.getPoints()) > 0) {    // more points than max. for this exercise
                     points_field.setText("");
                     points = null;

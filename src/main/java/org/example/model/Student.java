@@ -18,6 +18,7 @@ public class Student implements Comparable<Student> {
     private Map<String, Page> pages = null;
     private Integer pdfpage;
     private Integer prcnt;
+    private String qrcode;
 
     public Student(Integer id) {
         this(id, null);
@@ -104,6 +105,14 @@ public class Student implements Comparable<Student> {
 
     public void setPrcnt(Integer prcnt) {
         this.prcnt = prcnt;
+    }
+
+    public String getQrcode() {
+        return qrcode;
+    }
+
+    public void setQrcode(String qrcode) {
+        this.qrcode = qrcode;
     }
 
     public Map<String, Page> getPages() {

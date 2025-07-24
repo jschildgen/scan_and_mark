@@ -25,6 +25,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class PDFTools {
+    private static record QRCode(String content, double degree) { }
+
     public static int numPDFpages(File pdffile) throws IOException {
         PDDocument document = PDDocument.load(pdffile);
         int num_pages = document.getNumberOfPages();
@@ -45,6 +47,18 @@ public class PDFTools {
                 Files.createDirectory(folder);
             }
 
+            BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
+            QRCode qrcode = null;
+
+            try {
+                qrcode = getQRCode(bim);
+            } catch (NotFoundException e) {
+            }
+
+            if(qrcode != null) {
+                bim = rotateImage(bim, qrcode.degree);
+            }
+
             if(page_id == 1) {
                 int prcnt = (int) ((double) page / (document.getNumberOfPages() - 1) * 100);
                 Student student;
@@ -53,6 +67,7 @@ public class PDFTools {
                 } else {
                     student = new Student(exam_id, page, prcnt);
                 }
+                if(qrcode != null) { student.setQrcode(qrcode.content); }
                 try {
                     SAM.db.persist(student);
                 } catch (Exception e) {
@@ -60,22 +75,11 @@ public class PDFTools {
                 }
             }
 
-            BufferedImage bim = pdfRenderer.renderImageWithDPI(page, 300, ImageType.RGB);
-            double degree;
-
-            try {
-                degree = getQRAngle(bim);
-            } catch (NotFoundException e) {
-                degree = 0;
-            }
-
-            bim = rotateImage(bim, degree);
-
             Path path = folder.resolve(""+ page_id + ".jpg");
             ImageIOUtil.writeImage(bim, path.toString(), 300);
 
             progressConsumer.accept(1.0*page / document.getNumberOfPages());
-            System.out.printf("Create file %d/%d: %s (%.1f°)\n", page+1, document.getNumberOfPages(), path, degree);
+            System.out.printf("Create file %d/%d: %s (%s, %.1f°)\n", page+1, document.getNumberOfPages(), path, qrcode != null ? qrcode.content : "", qrcode != null ? qrcode.degree : 0);
         }
         document.close();
     }
@@ -92,7 +96,7 @@ public class PDFTools {
         return result;
     }
 
-    private static double getQRAngle(BufferedImage image) throws NotFoundException {
+    private static QRCode getQRCode(BufferedImage image) throws NotFoundException {
         final String charset = "UTF-8"; // or "ISO-8859-1"
         final Map hintMap = new HashMap();
         hintMap.put(DecodeHintType.TRY_HARDER, Boolean.TRUE);
@@ -110,10 +114,10 @@ public class PDFTools {
             double degree = Math.toDegrees(Math.atan((p[0].getX() - p[1].getX()) / (p[0].getY() - p[1].getY())));
             double height = Math.sqrt(Math.pow(p[0].getX() - p[1].getX(), 2) + Math.pow(p[0].getY() - p[1].getY(), 2));
 
-            return degree;
+            return new QRCode(qrCodeResult.getText(), degree);
         }
         System.out.println("No QR Code found");
-        return 0.0;
+        return null;
     }
 
     public static void mergePDFs(List<File> pdfNamesList, File outputFile) throws IOException {
@@ -126,4 +130,6 @@ public class PDFTools {
         pdfMerger.mergeDocuments(null);
         System.out.println("Created File: "+outputFile.toString());
     }
+
+
 }

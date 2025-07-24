@@ -61,8 +61,14 @@ public class DB {
                     stmt.executeUpdate("ALTER TABLE students ADD COLUMN pdfpage int");
                     stmt.executeUpdate("ALTER TABLE students ADD COLUMN prcnt int");
                 }
+                set_sam_config("db_version", SAM.SAM_VERSION);
+            }
 
-                // Jetzt ist Statement geschlossen → sicherer zweiter Schreibzugriff
+            if (db_version_older_than("0.1.2")) {
+                System.out.println("Updating to 0.1.2: Add qrcode column to students table");
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE students ADD COLUMN qrcode varchar(255)");
+                }
                 set_sam_config("db_version", SAM.SAM_VERSION);
             }
 
@@ -145,10 +151,10 @@ public class DB {
         }
 
         String sql = """
-        INSERT INTO students (sid, matno, name1, name2, pdfpage, prcnt)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO students (sid, matno, name1, name2, pdfpage, prcnt, qrcode)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(sid) DO UPDATE SET
-            matno = ?, name1 = ?, name2 = ?, pdfpage = ?, prcnt = ?
+            matno = ?, name1 = ?, name2 = ?, pdfpage = ?, prcnt = ?, qrcode = ?
         """;
 
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -158,12 +164,14 @@ public class DB {
             pstmt.setString(4, student.getName2());
             pstmt.setInt(5, student.getPdfpage());
             pstmt.setInt(6, student.getPrcnt());
+            pstmt.setString(7, student.getQrcode());
 
-            pstmt.setString(2+5, student.getMatno());
-            pstmt.setString(3+5, student.getName1());
-            pstmt.setString(4+5, student.getName2());
-            pstmt.setInt(5+5, student.getPdfpage());
-            pstmt.setInt(6+5, student.getPrcnt());
+            pstmt.setString(2+6, student.getMatno());
+            pstmt.setString(3+6, student.getName1());
+            pstmt.setString(4+6, student.getName2());
+            pstmt.setInt(5+6, student.getPdfpage());
+            pstmt.setInt(6+6, student.getPrcnt());
+            pstmt.setString(7+6, student.getQrcode());
 
             pstmt.executeUpdate();
         }
@@ -260,6 +268,7 @@ public class DB {
                 student.setName2(rs.getString("name2"));
                 student.setPdfpage(rs.getInt("pdfpage"));
                 student.setPrcnt(rs.getInt("prcnt"));
+                student.setQrcode(rs.getString("qrcode"));
                 students.add(student);
             }
         } catch (SQLException e) {
@@ -280,6 +289,7 @@ public class DB {
                     student.setName2(rs.getString("name2"));
                     student.setPdfpage(rs.getInt("pdfpage"));
                     student.setPrcnt(rs.getInt("prcnt"));
+                    student.setQrcode(rs.getString("qrcode"));
                     return student;
                 }
             }
@@ -301,6 +311,7 @@ public class DB {
                     student.setName2(rs.getString("name2"));
                     student.setPdfpage(rs.getInt("pdfpage"));
                     student.setPrcnt(rs.getInt("prcnt"));
+                    student.setQrcode(rs.getString("qrcode"));
                     return student;
                 }
             }
@@ -403,7 +414,7 @@ public class DB {
             stmt.executeUpdate("DROP TABLE IF EXISTS students");
 
             stmt.executeUpdate("CREATE TABLE sam(k VARCHAR(255), v VARCHAR(255))");
-            stmt.executeUpdate("CREATE TABLE students (sid int primary key, matno varchar(255), name1 varchar(255), name2 varchar(255), pdfpage int, prcnt int)");
+            stmt.executeUpdate("CREATE TABLE students (sid int primary key, matno varchar(255), name1 varchar(255), name2 varchar(255), pdfpage int, prcnt int, qrcode varchar(255))");
             stmt.executeUpdate("CREATE TABLE exercises (eid int primary key, label varchar(255), page varchar(255), points decimal(18,2), pos1x double, pos1y double, pos2x double, pos2y double)");
             stmt.executeUpdate("CREATE TABLE answers (student int references students(sid), exercise int references exercises(eid), points decimal(18,2), feedback varchar(2000000), PRIMARY KEY(student, exercise))");
         }
