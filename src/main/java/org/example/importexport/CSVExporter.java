@@ -59,6 +59,8 @@ public class CSVExporter {
                 header_row.addAll(exercise_label_numbers);
                 header_row.add("");
                 header_row.add("total");
+                header_row.add("");
+                header_row.add("");
                 csvPrinter.printRecord(header_row);
             }
             row.add("");
@@ -67,6 +69,8 @@ public class CSVExporter {
             }
             row.add("");
             row.add(total_points.toString());
+            row.add("");
+            row.add(student.getQrcode() == null ? "" : student.getQrcode());
             csvPrinter.printRecord(row);
             i++;
         }
