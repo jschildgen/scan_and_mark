@@ -23,7 +23,7 @@ import java.util.List;
  * JavaFX App
  */
 public class SAM extends Application {
-    public static final String SAM_VERSION = "0.1.2";
+    public static final String SAM_VERSION = "0.1.3";
     private static Path base_dir;
     public static DB db;
     private static Application applicationInstance;
@@ -36,7 +36,7 @@ public class SAM extends Application {
         setBase_dir(Paths.get(System.getProperty("user.dir")));
 
         Parent root = FXMLLoader.load(getClass().getResource("main.fxml"));
-        stage.setTitle("SAM - Scan and Mark");
+        stage.setTitle("SAM - Scan and Mark - "+SAM_VERSION);
         stage.getIcons().add(new Image(getClass().getResourceAsStream("sam80x80.png")));
         VBox vBox = new VBox(root);
         Scene scene = new Scene(vBox, 1400, 900);
