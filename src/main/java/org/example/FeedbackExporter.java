@@ -26,6 +26,7 @@ public class FeedbackExporter {
         Template template;
         try {
             // For JAR execution
+            // TODO!!!
             cfg.setClassForTemplateLoading(this.getClass(), "/org/example");
             cfg.setDefaultEncoding("UTF-8");
             cfg.setLocale(Locale.US);
@@ -33,6 +34,7 @@ public class FeedbackExporter {
             template = cfg.getTemplate("feedback.ftl");
         } catch (Exception e) {
             // For IDE execution
+            // TODO!!!
             cfg.setTemplateLoader(new FileTemplateLoader(new File("src/main/java/org/example/")));
             cfg.setDefaultEncoding("UTF-8");
             cfg.setLocale(Locale.US);

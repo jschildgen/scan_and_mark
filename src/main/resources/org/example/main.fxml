@@ -39,6 +39,11 @@
                             <MenuItem text="Export student point to Moodle" onAction="#importMoodleStudents" />
                         </items>
                     </Menu>
+                    <Menu text="Settings">
+                        <items>
+                            <CheckMenuItem text="Anonymous Mode" onAction="#anonymousMode"/>
+                        </items>
+                    </Menu>
                 </menus>
             </MenuBar>
             <BorderPane>

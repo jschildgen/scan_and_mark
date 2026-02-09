@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import org.example.elements.MarkingPane;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,10 +24,11 @@ import java.util.List;
  * JavaFX App
  */
 public class SAM extends Application {
-    public static final String SAM_VERSION = "0.1.3";
+    public static final String SAM_VERSION = "0.1.4";
     private static Path base_dir;
     public static DB db;
     private static Application applicationInstance;
+    public static boolean anonymous_mode = false;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -40,6 +42,20 @@ public class SAM extends Application {
         stage.getIcons().add(new Image(getClass().getResourceAsStream("sam80x80.png")));
         VBox vBox = new VBox(root);
         Scene scene = new Scene(vBox, 1400, 900);
+
+        scene.setOnKeyPressed(event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.F5) {
+                Controller.controllerInstance.clickExercise(null);  // Refresh current exercise view
+            } else if (event.isControlDown() && event.getCode() == javafx.scene.input.KeyCode.R) {
+                Controller.controllerInstance.clickExercise(null);  // Refresh current exercise view
+            } else if (event.isControlDown() && event.getCode().isDigitKey()) {     // Ctrl+0..9: Set points
+                if(!Controller.controllerInstance.answers_list.getChildren().isEmpty()) {
+                    MarkingPane markingPane = (MarkingPane) Controller.controllerInstance.answers_list.getChildren().getFirst();
+                    markingPane.setPoints(event.getText());
+                }
+            }
+        });
+
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.show();

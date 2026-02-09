@@ -129,6 +129,9 @@ public class Student implements Comparable<Student> {
 
     @Override
     public String toString() {
+        if(SAM.anonymous_mode) {
+            return "***";
+        }
         if(this.matno == null) {
             return "#"+id;
         }

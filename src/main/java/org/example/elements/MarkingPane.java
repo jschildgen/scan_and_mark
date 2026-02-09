@@ -23,6 +23,9 @@ import java.util.regex.Pattern;
 
 public class MarkingPane extends BorderPane {
     private Consumer<Answer> onAnswer;
+    private final EventHandler pointsChangedHandler;
+    private final ComboBox<String> feedback_field;
+    private final TextField points_field;
 
     public MarkingPane(Answer answer, Map<String, BigDecimal> feedback_map, ObservableList<String> feedback_list) throws SQLException {
         Student student = answer.getStudent();
@@ -36,15 +39,15 @@ public class MarkingPane extends BorderPane {
         this.setLeft(student_label);
         BorderPane.setAlignment(student_label, Pos.CENTER_LEFT);
 
-        TextField points_field = new TextField();
+        this.points_field = new TextField();
         points_field.setText(answer.getPoints() != null ? ""+answer.getPoints() : "");
         points_field.setPrefWidth(40);
 
         points_field.setOnMouseClicked(e -> points_field.selectAll());
 
-        ComboBox<String> feedback_field = new ComboBox<>();
+        feedback_field = new ComboBox<>();
 
-        EventHandler pointsChangedHandler = e -> {
+        this.pointsChangedHandler = e -> {
             if(points_field.getText().contains(",")) {
                 points_field.setText(points_field.getText().replaceFirst(",","."));
                 points_field.positionCaret(points_field.getText().length());
@@ -71,7 +74,7 @@ public class MarkingPane extends BorderPane {
                 answer.setFeedback(null);
             }
 
-            if(e.getSource() instanceof ComboBox   /* feedback was changed => autofill points */
+            if(e != null && e.getSource() instanceof ComboBox   /* feedback was changed => autofill points */
                &&     answer.getPoints() == null && feedback_map.containsKey(answer.getFeedback())
                                         && feedback_map.get(answer.getFeedback()) != null) {
                 answer.setPoints(feedback_map.get(answer.getFeedback()));
@@ -100,6 +103,20 @@ public class MarkingPane extends BorderPane {
                     if(answer.getFeedback() != null && answer.getFeedback().endsWith(", ")) {
                         answer.setFeedback(answer.getFeedback().substring(0, answer.getFeedback().length()-2));
                         feedback_field.setValue(answer.getFeedback());
+                    }
+
+                    // If feedback text is just a single number, that's the points
+                    if(answer.getFeedback() != null) {
+                        Pattern pattern = Pattern.compile("^\\d(?:[.,]\\d{1,2})?$");
+                        Matcher matcher = pattern.matcher(answer.getFeedback());
+                        if (matcher.find()) {
+                            String integerPart = matcher.group(1);
+                            String decimalPart = matcher.group(2);
+                            points_field.setText(integerPart + (decimalPart != null ? "." + decimalPart : ""));
+                            answer.setFeedback("");
+                            feedback_field.setValue(answer.getFeedback());
+                            pointsChangedHandler.handle(e);
+                        }
                     }
 
                     // Feedback text can contain multiple negative numbers in parentheses (-1)
@@ -173,5 +190,14 @@ public class MarkingPane extends BorderPane {
         }
 
         return sum;
+    }
+
+    public void focusFeedbackField() {
+        this.feedback_field.requestFocus();
+    }
+
+    public void setPoints(String points) {
+        points_field.setText(points);
+        pointsChangedHandler.handle(null);
     }
 }

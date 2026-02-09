@@ -61,7 +61,6 @@ public class DB {
                     stmt.executeUpdate("ALTER TABLE students ADD COLUMN pdfpage int");
                     stmt.executeUpdate("ALTER TABLE students ADD COLUMN prcnt int");
                 }
-                set_sam_config("db_version", SAM.SAM_VERSION);
             }
 
             if (db_version_older_than("0.1.2")) {
@@ -69,9 +68,9 @@ public class DB {
                 try (Statement stmt = conn.createStatement()) {
                     stmt.executeUpdate("ALTER TABLE students ADD COLUMN qrcode varchar(255)");
                 }
-                set_sam_config("db_version", SAM.SAM_VERSION);
             }
 
+            set_sam_config("db_version", SAM.SAM_VERSION);
             System.out.println("Updated to " + SAM.SAM_VERSION);
 
         } catch (SQLException e) {

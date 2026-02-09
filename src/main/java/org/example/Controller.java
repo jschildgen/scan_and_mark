@@ -19,6 +19,7 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -63,7 +64,7 @@ public class Controller {
     ;
     private AnswerFilter answerFilter = AnswerFilter.NOT_MARKED;
 
-    private static Controller controllerInstance = null;
+    public static Controller controllerInstance = null;
 
     public ToggleGroup filter_answers;
     @FXML
@@ -492,6 +493,15 @@ public class Controller {
         }
         pagination_forward.setDisable(num_students != PAGINATION_PER_PAGE);
         pageLabel.setText("" + (pagination_offset + 1) + " - " + (pagination_offset + num_students));
+
+        // Focus first feedback text field in answers list
+        List<Node> answers_elements = answers_list.getChildren();
+        if(!answers_elements.isEmpty()) {
+            MarkingPane first_answer_element = (MarkingPane) answers_elements.getFirst();
+            first_answer_element.focusFeedbackField();
+        } else {
+            listView_exercises.requestFocus();
+        }
     }
 
     public void changeExercise(KeyEvent keyEvent) {
@@ -1043,5 +1053,13 @@ public class Controller {
 
     public static void setProgress(double progress) {
         Controller.controllerInstance.progress.setProgress(progress);
+    }
+
+    public void anonymousMode(ActionEvent actionEvent) {
+        if(actionEvent.getSource() instanceof CheckMenuItem item) {
+            SAM.anonymous_mode = item.isSelected();
+            clickExercise(null);  // Refresh current exercise view
+            refresh();
+        }
     }
 }
