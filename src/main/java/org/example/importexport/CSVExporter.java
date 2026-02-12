@@ -10,12 +10,27 @@ import org.example.model.Student;
 import java.io.FileWriter;
 import java.math.BigDecimal;
 import java.nio.file.Path;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.*;
 
 public class CSVExporter {
     public void exportCSV(Path path) throws Exception {
+        exportCSV(path, '.');
+    }
+
+    public void exportCSV(Path path, char decimalSeparator) throws Exception {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setDecimalSeparator(decimalSeparator);
+        DecimalFormat df = new DecimalFormat("#0.##", symbols);
+
         FileWriter writer = new FileWriter(path.toString());
-        CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
+        CSVFormat format = CSVFormat.DEFAULT
+                .builder()
+                .setDelimiter('\t')
+                .build();
+
+        CSVPrinter csvPrinter = new CSVPrinter(writer, format);
         List<Exercise> exercises = SAM.db.getExercises();
         List<String> header_row = new ArrayList<>();
         header_row.add("matno");
@@ -50,7 +65,7 @@ public class CSVExporter {
                 if (answer == null || answer.getPoints() == null) {
                     throw new Exception("Incomplete! Answer not found for student " + student + " and exercise " + exercise);
                 }
-                row.add(answer.getPoints().toString());
+                row.add(df.format(answer.getPoints()));
                 exercise_points.put(label_number, exercise_points.get(label_number).add(answer.getPoints() == null ? BigDecimal.ZERO : answer.getPoints()));
                 total_points = total_points.add(answer.getPoints() == null ? BigDecimal.ZERO : answer.getPoints());
             }
@@ -65,10 +80,10 @@ public class CSVExporter {
             }
             row.add("");
             for (String label_number : exercise_label_numbers) {
-                row.add(exercise_points.get(label_number).toString());
+                row.add(df.format(exercise_points.get(label_number)));
             }
             row.add("");
-            row.add(total_points.toString());
+            row.add(df.format(total_points));
             row.add("");
             row.add(student.getQrcode() == null ? "" : student.getQrcode());
             csvPrinter.printRecord(row);

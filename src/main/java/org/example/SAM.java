@@ -24,7 +24,7 @@ import java.util.List;
  * JavaFX App
  */
 public class SAM extends Application {
-    public static final String SAM_VERSION = "0.1.4";
+    public static final String SAM_VERSION = "0.1.5";
     private static Path base_dir;
     public static DB db;
     private static Application applicationInstance;

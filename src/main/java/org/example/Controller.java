@@ -957,6 +957,18 @@ public class Controller {
     }
 
     public void exportStudents(ActionEvent actionEvent) {
+        ChoiceDialog<Character> decimalDialog = new ChoiceDialog<>('.', '.', ',');
+        decimalDialog.setTitle("Select decimal separator");
+        decimalDialog.setHeaderText("Should decimal numbers be displayed using a period (e.g., 7.5) or a comma (German format, e.g., 7,5)?");
+        decimalDialog.setContentText("Decimal number format:");
+
+        Optional<Character> result = decimalDialog.showAndWait();
+        if (result.isEmpty()) {
+            return;
+        }
+
+        char decimalSeparator = result.get();
+
         FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("CSV files (*.csv)", "*.csv");
         fileChooser.getExtensionFilters().add(extFilter);
@@ -987,7 +999,7 @@ public class Controller {
         }
         CSVExporter csvExporter = new CSVExporter();
         try {
-            csvExporter.exportCSV(Paths.get(uri));
+            csvExporter.exportCSV(Paths.get(uri), decimalSeparator);
         } catch (Exception ex) {
             showError("CSV-Export Error: " + ex.getMessage());
             ex.printStackTrace();
