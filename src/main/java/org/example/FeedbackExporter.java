@@ -23,24 +23,26 @@ public class FeedbackExporter {
     public void exportFeedback(Path path) throws IOException, TemplateException, URISyntaxException, SQLException {
         Configuration cfg = new Configuration(Configuration.VERSION_2_3_31);
 
-        Template template;
-        try {
-            // For JAR execution
-            // TODO!!!
+        boolean isRunningFromJar = FeedbackExporter.class.getProtectionDomain().getCodeSource() != null
+                && FeedbackExporter.class.getProtectionDomain().getCodeSource().getLocation().toString().endsWith(".jar");
+
+        if (isRunningFromJar) {
+            // Jar execution: Use ClassTemplateLoader
             cfg.setClassForTemplateLoading(this.getClass(), "/org/example");
-            cfg.setDefaultEncoding("UTF-8");
-            cfg.setLocale(Locale.US);
-            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-            template = cfg.getTemplate("feedback.ftl");
-        } catch (Exception e) {
-            // For IDE execution
-            // TODO!!!
-            cfg.setTemplateLoader(new FileTemplateLoader(new File("src/main/java/org/example/")));
-            cfg.setDefaultEncoding("UTF-8");
-            cfg.setLocale(Locale.US);
-            cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
-            template = cfg.getTemplate("feedback.ftl");
+        } else {
+            // IDE execution: FileTemplateLoader
+            File templateDir = new File("src/main/resources/org/example");
+            if (!templateDir.exists()) {
+                throw new FileNotFoundException("Template directory not found: " + templateDir.getAbsolutePath());
+            }
+            cfg.setTemplateLoader(new FileTemplateLoader(templateDir));
         }
+
+        cfg.setDefaultEncoding("UTF-8");
+        cfg.setLocale(Locale.US);
+        cfg.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+
+        Template template = cfg.getTemplate("feedback.ftl");
 
         Map<String, Object> input = new HashMap<String, Object>();
 
